@@ -132,6 +132,8 @@
           input.value = '';
           input.focus();
           pollMessages();
+          // Refresh messages tab to show new message
+          refreshMessagesTab();
         } else {
           console.error('Failed to send message');
         }
@@ -157,11 +159,14 @@
               } else {
                 const div = document.createElement('div');
                 div.className = `message ${msg.sender_id === userId ? 'sent' : 'received'}`;
+                
                 const metaDiv = document.createElement('div');
                 metaDiv.className = 'message-meta';
                 metaDiv.textContent = msg.username || 'Unknown';
+                
                 const contentDiv = document.createElement('div');
                 contentDiv.textContent = msg.content;
+                
                 const timeDiv = document.createElement('div');
                 timeDiv.className = 'message-time';
                 timeDiv.textContent = msg.created_at.substring(11, 16);
@@ -178,22 +183,34 @@
             wrapper.appendChild(bottom);
             
             if (scrolled) scrollToBottom();
+            
+            // Refresh messages tab to update unread counts
+            refreshMessagesTab();
           }
         })
         .catch(error => console.error('Poll error:', error));
-      
-      // Refresh navbar badge
-      const messagesLinks = document.querySelectorAll('a[href="/messages"]');
-      messagesLinks.forEach(link => {
-        const badge = link.querySelector('.msg-unread-badge');
-        if (badge) badge.remove();
-      });
     }
 
-    window.addEventListener('load', function() {
-      scrollToBottom();
-      setInterval(pollMessages, 2000);
-    });
+    function refreshMessagesTab() {
+      fetch('/messages')
+        .then(response => response.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(html, 'text/html');
+          const newList = doc.querySelector('#conversationList');
+          const oldList = document.querySelector('#conversationList');
+          if (newList && oldList) {
+            oldList.innerHTML = newList.innerHTML;
+          }
+        })
+        .catch(error => console.error('Refresh error:', error));
+    }
+
+    // Poll messages every 2 seconds
+    setInterval(pollMessages, 2000);
+    
+    // Initial scroll to bottom
+    scrollToBottom();
   </script>
 </body>
 </html>

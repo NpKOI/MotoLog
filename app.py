@@ -569,6 +569,7 @@ def messages():
     for conv in conversations:
         other_id = conv['other_user_id']
         other_user = query_db('SELECT id, username, profile_pic FROM users WHERE id = ?', (other_id,), one=True)
+        # Only count messages FROM the other user TO you that are unread
         unread = query_db('SELECT COUNT(*) as c FROM messages WHERE sender_id = ? AND recipient_id = ? AND is_read = 0', 
                          (other_id, uid), one=True)['c']
         conv_list.append({
@@ -591,11 +592,11 @@ def messages():
 
     group_list = []
     for g in groups:
-        # Count unread: messages created AFTER user's last_read time, excluding system messages (sender_id != 0)
+        # Count unread: messages created AFTER user's last_read time, excluding system messages (sender_id != 0) and excluding messages sent by current user
         last_read = query_db('SELECT last_read FROM group_members WHERE group_id = ? AND user_id = ?', (g['id'], uid), one=True)
         last_read_time = last_read['last_read'] if last_read and last_read['last_read'] else '1900-01-01'
-        unread = query_db('SELECT COUNT(*) as c FROM group_messages WHERE group_id = ? AND sender_id != 0 AND created_at > ?', 
-                          (g['id'], last_read_time), one=True)['c']
+        unread = query_db('SELECT COUNT(*) as c FROM group_messages WHERE group_id = ? AND sender_id != 0 AND sender_id != ? AND created_at > ?', 
+                          (g['id'], uid, last_read_time), one=True)['c']
         group_list.append({
             'type': 'group',
             'group': g,
@@ -698,10 +699,15 @@ def get_group_messages_ajax(group_id):
     if 'user_id' not in session:
         return {'messages': []}, 401
 
+    current_uid = session['user_id']
+    
     # check membership
-    member = query_db('SELECT id FROM group_members WHERE group_id = ? AND user_id = ?', (group_id, session['user_id']), one=True)
+    member = query_db('SELECT id FROM group_members WHERE group_id = ? AND user_id = ?', (group_id, current_uid), one=True)
     if not member:
         return {'messages': []}, 403
+
+    # Update last_read to now to mark all previous messages as read
+    query_db('UPDATE group_members SET last_read = datetime("now") WHERE group_id = ? AND user_id = ?', (group_id, current_uid))
 
     msgs = query_db('''
         SELECT gm.*, u.username, u.profile_pic FROM group_messages gm
@@ -734,7 +740,7 @@ def send_message_ajax(recipient_id):
     if not content:
         return {'success': False, 'error': 'Empty message'}, 400
 
-    query_db('INSERT INTO messages (sender_id, recipient_id, content, created_at) VALUES (?, ?, ?, datetime("now"))',
+    query_db('INSERT INTO messages (sender_id, recipient_id, content, is_read, created_at) VALUES (?, ?, ?, 1, datetime("now"))',
              (session['user_id'], recipient_id, content))
     return {'success': True}
 
@@ -1139,17 +1145,18 @@ def unread_count():
     
     uid = session['user_id']
     
-    # Count unread user messages
-    user_unread = query_db('SELECT COUNT(*) as c FROM messages WHERE recipient_id = ? AND is_read = 0', (uid,), one=True)['c']
+    # Count unread user messages FROM others TO you (exclude messages you sent)
+    user_unread = query_db('SELECT COUNT(*) as c FROM messages WHERE recipient_id = ? AND is_read = 0 AND sender_id != ?', (uid, uid), one=True)['c']
     
-    # Count unread group messages
+    # Count unread group messages FROM others (exclude system messages and messages you sent)
     groups = query_db('SELECT g.id FROM groups g JOIN group_members gm ON g.id = gm.group_id WHERE gm.user_id = ?', (uid,))
     group_unread = 0
     for g in groups:
         last_read = query_db('SELECT last_read FROM group_members WHERE group_id = ? AND user_id = ?', (g['id'], uid), one=True)
         last_read_time = last_read['last_read'] if last_read and last_read['last_read'] else '1900-01-01'
-        count = query_db('SELECT COUNT(*) as c FROM group_messages WHERE group_id = ? AND sender_id != 0 AND created_at > ?', 
-                        (g['id'], last_read_time), one=True)['c']
+        # Exclude system messages (sender_id != 0) and exclude messages sent by current user (sender_id != uid)
+        count = query_db('SELECT COUNT(*) as c FROM group_messages WHERE group_id = ? AND sender_id != 0 AND sender_id != ? AND created_at > ?', 
+                        (g['id'], uid, last_read_time), one=True)['c']
         group_unread += count
     
     return {'unread_count': user_unread + group_unread}
