@@ -8,15 +8,7 @@
 </head>
 <body>
   <div class="dashboard-container">
-    <nav class="navbar">
-      <div class="brand">🏍️ MotoLog</div>
-      <div class="navbar-links">
-        <a href="/dashboard">Dashboard</a>
-        <a href="/leaderboard">Leaderboard</a>
-        <a href="/tools">Tools</a>
-        <a href="/logout">Logout</a>
-      </div>
-    </nav>
+    {% include '_navbar.html' %}
 
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}

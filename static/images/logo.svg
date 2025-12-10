@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120" role="img" aria-label="MotoLog logo">
+  <defs>
+    <linearGradient id="g1" x1="0" x2="1">
+      <stop offset="0" stop-color="#5676f0"/>
+      <stop offset="1" stop-color="#5c5ce8"/>
+    </linearGradient>
+  </defs>
+  <rect rx="18" width="120" height="120" fill="url(#g1)"/>
+  <!-- simple motorcycle icon -->
+  <g transform="translate(12,18)" fill="#fff">
+    <path d="M28 12 C24 8, 8 8, 4 12 L4 20 L10 20 C12 20,14 22,14 24 C14 26,12 28,10 28 C8 28,6 26,6 24" opacity="0.95"/>
+    <path d="M76 24 L66 12 L40 12 L28 24" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <circle cx="18" cy="44" r="8" fill="#fff" />
+    <circle cx="66" cy="44" r="10" fill="#fff" />
+  </g>
+  <!-- text -->
+  <text x="64" y="88" font-family="Poppins, Inter, sans-serif" font-weight="700" font-size="16" fill="#fff" text-anchor="middle">MotoLog</text>
+</svg>

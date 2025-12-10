@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MotoLog - Dashboard</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>MotoLog — Dashboard</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
@@ -12,105 +12,103 @@
 
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
+        <div style="margin-top:18px;">
         <div class="flash-messages">
           {% for category, message in messages %}
             <div class="flash-message {{ category }}">{{ message }}</div>
           {% endfor %}
         </div>
+        </div>
       {% endif %}
     {% endwith %}
 
-    <div class="stats-container">
-      <div class="stat-card">
-        <h3>Total Rides</h3>
-        <div class="value">{{ total_rides }}</div>
+    <!-- Hero / quick stats -->
+    <header style="display:flex; gap:18px; align-items:center; margin-top:18px;">
+      <div style="flex:1; background:linear-gradient(135deg,var(--card-bg),color-mix(in srgb,var(--card-bg) 96%, var(--glass) 4%)); padding:18px; border-radius:16px; box-shadow:var(--shadow-1); display:flex; align-items:center; gap:18px;">
+        <div style="width:92px; height:92px; border-radius:12px; display:flex; align-items:center; justify-content:center;">
+          <img src="{{ url_for('static', filename='MotoLog_Logo.png') }}" alt="MotoLog" class="logo-hero">
+        </div>
+        <div>
+          <div style="font-size:1.25rem; font-weight:700;">Hello, {{ session.get('username') or 'Rider' }} 👋</div>
+          <div style="color:var(--muted); margin-top:6px;">Quick actions, recent rides, and your progress at a glance.</div>
+        </div>
       </div>
-      <div class="stat-card">
-        <h3>Total Distance</h3>
-        <div class="value">{{ "%.1f"|format(total_distance) }} km</div>
-      </div>
-      <div class="stat-card">
-        <h3>Total Time</h3>
-        <div class="value">{{ "%.1f"|format(total_time) }} hrs</div>
-      </div>
-      <div class="stat-card">
-        <h3>Avg Distance</h3>
-        <div class="value">{{ "%.1f"|format(avg_distance) }} km</div>
-      </div>
-    </div>
 
-    <div class="button-group">
-      <a href="/add-ride" class="btn">+ Add New Ride</a>
-      <a href="/leaderboard" class="btn btn-secondary">🏆 Leaderboard</a>
-      <a href="/tools" class="btn btn-secondary">🧰 Tools</a>
-    </div>
+      <div style="display:flex; gap:12px;">
+        <a href="/add-ride" class="btn">+ Add Ride</a>
+        <a href="/leaderboard" class="btn btn-secondary">🏆 Leaderboard</a>
+      </div>
+    </header>
 
-    <div class="rides-container">
-      <h3>Your Rides</h3>
-      {% if rides %}
-        {% for ride in rides %}
-          <div class="ride-card">
-            <div class="ride-info">
-              <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem;">
-                <div>
-                  <div class="ride-date">📅 {{ ride['date'] }}</div>
-                  <div class="ride-details">🛣️ Distance: <strong>{{ ride['distance'] }} km</strong></div>
-                  <div class="ride-details">⏱️ Time: <strong>{{ ride['time'] }} hours</strong></div>
+    <!-- Stats grid -->
+    <section style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap:16px; margin-top:18px;">
+      <div class="stat-card">
+        <div style="font-size:0.9rem; color:var(--muted); font-weight:700;">Total Rides</div>
+        <div style="font-size:1.9rem; font-weight:800; color:var(--primary-600); margin-top:8px;">{{ total_rides }}</div>
+      </div>
+      <div class="stat-card">
+        <div style="font-size:0.9rem; color:var(--muted); font-weight:700;">Total Distance</div>
+        <div style="font-size:1.9rem; font-weight:800; color:var(--primary-600); margin-top:8px;">{{ "%.1f"|format(total_distance) }} km</div>
+      </div>
+      <div class="stat-card">
+        <div style="font-size:0.9rem; color:var(--muted); font-weight:700;">Total Time</div>
+        <div style="font-size:1.9rem; font-weight:800; color:var(--primary-600); margin-top:8px;">{{ "%.1f"|format(total_time) }} hrs</div>
+      </div>
+      <div class="stat-card">
+        <div style="font-size:0.9rem; color:var(--muted); font-weight:700;">Avg Distance</div>
+        <div style="font-size:1.9rem; font-weight:800; color:var(--primary-600); margin-top:8px;">{{ "%.1f"|format(avg_distance) }} km</div>
+      </div>
+    </section>
+
+    <!-- Recent rides list -->
+    <section style="margin-top:20px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <h3 style="margin:0; color:var(--text)">Recent Rides</h3>
+        <a href="/add-ride" class="btn" style="padding:8px 12px; font-size:0.95rem;">New ride</a>
+      </div>
+
+      <div style="display:grid; gap:12px;">
+        {% if rides %}
+          {% for ride in rides %}
+            <div class="ride-card" style="align-items:flex-start; padding:14px;">
+              <div style="flex:1;">
+                <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start;">
+                  <div>
+                    <div style="font-weight:800; color:var(--primary-600); font-size:1rem;">{{ ride['date'] }}</div>
+                    <div style="color:var(--muted); margin-top:6px;">{{ ride['description'] or 'No description' }}</div>
+                  </div>
+                  <div style="text-align:right;">
+                    <div style="font-weight:800; color:var(--text); font-size:1rem;">{{ ride['distance'] }} km</div>
+                    <div style="color:var(--muted); margin-top:6px;">{{ ride['time'] }} hrs</div>
+                  </div>
                 </div>
-                <div style="text-align:right;">
-                  {% if ride['is_private'] %}
-                    <div style="background:#f8d7da; color:#721c24; padding:6px 10px; border-radius:8px; font-weight:700;">Private</div>
-                  {% else %}
-                    <div style="background:#e6fffa; color:#065f46; padding:6px 10px; border-radius:8px; font-weight:700;">Public</div>
-                  {% endif %}
-                </div>
+
+                {% if ride['tags'] %}
+                  <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+                    {% for tag in (ride['tags'] or '').split(',') %}
+                      {% set t = tag.strip() %}
+                      <div style="background: color-mix(in srgb, var(--primary-500) 6%, transparent); color:var(--primary-600); padding:6px 8px; border-radius:8px; font-weight:700; font-size:0.85rem;">{{ t }}</div>
+                    {% endfor %}
+                  </div>
+                {% endif %}
               </div>
 
-              {% if ride['tags'] %}
-                {% set emojis = {
-                  'sunny':'☀️','rain':'🌧️','cloudy':'☁️','cold':'❄️',
-                  'gravel':'🪨','offroad':'🏜️','highway':'🛣️','city':'🏙️',
-                  'commute':'🚗','tour':'🗺️','sport':'⚡','leisure':'😎'
-                } %}
-                <div style="margin-top:0.75rem;">
-                  {% for tag in (ride['tags'] or '').split(',') %}
-                    {% set t = tag.strip() %}
-                    <span class="tag-chip">
-                      <span class="emoji">{{ emojis.get(t, '🏷️') }}</span>
-                      {{ t }}
-                    </span>
-                  {% endfor %}
-                </div>
-              {% endif %}
-
-              <div class="ride-details" style="margin-top:0.75rem;">📝 {{ ride['description'] or 'No description' }}</div>
-
-              <div class="ride-meta">
-                <form method="POST" action="/ride/{{ ride['id'] }}/like" style="display:inline;">
-                  <button type="submit" class="like-btn">👍 Like
-                    <span class="count-badge">{{ query_db('SELECT COUNT(*) as c FROM likes WHERE ride_id=?', (ride['id'],), one=True)['c'] }}</span>
-                  </button>
-                </form>
-
-                <form method="POST" action="/ride/{{ ride['id'] }}/comment" style="display:inline;">
-                  <input name="comment" placeholder="Add comment..." style="padding:6px 10px; border-radius:8px; border:1px solid #e0e0e0;">
-                  <button type="submit" class="comment-btn">Comment
-                    <span class="count-badge">{{ query_db('SELECT COUNT(*) as c FROM comments WHERE ride_id=?', (ride['id'],), one=True)['c'] }}</span>
-                  </button>
-                </form>
+              <div style="display:flex; flex-direction:column; gap:8px; margin-left:12px;">
+                <a href="/edit-ride/{{ ride['id'] }}" class="btn" style="padding:8px 10px; font-size:0.85rem;">Edit</a>
+                <a href="/delete-ride/{{ ride['id'] }}" class="btn btn-secondary" style="padding:8px 10px; font-size:0.85rem;" onclick="return confirm('Delete this ride?')">Delete</a>
               </div>
             </div>
-
-            <div class="ride-actions">
-              <a href="/edit-ride/{{ ride['id'] }}" class="edit-btn">Edit</a>
-              <a href="/delete-ride/{{ ride['id'] }}" class="delete-btn" onclick="return confirm('Delete this ride?')">Delete</a>
-            </div>
+          {% endfor %}
+        {% else %}
+          <div class="stat-card" style="text-align:center;">
+            <div style="font-weight:700; color:var(--muted)">No rides yet</div>
+            <div style="color:var(--muted); margin-top:8px;">Start your first ride and it will appear here.</div>
+            <div style="margin-top:12px;"><a href="/add-ride" class="btn">Add your first ride</a></div>
           </div>
-        {% endfor %}
-      {% else %}
-        <p class="empty-message">No rides yet. <a href="/add-ride" style="color: #667eea;">Add your first ride!</a></p>
-      {% endif %}
-    </div>
+        {% endif %}
+      </div>
+    </section>
+
   </div>
 </body>
 </html>
