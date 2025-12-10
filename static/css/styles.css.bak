@@ -1,0 +1,1383 @@
+﻿/* ===========================
+MotoLogv2 вЂ” Modern UI Theme (fixed)
+
+Light theme by default
+Add .dark to <body> to enable dark theme
+Uses CSS variables for easy adjustments
+Dark-mode contrast & font fixes included
+=========================== */
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Poppins:wght@600;700&display=swap');
+
+:root{
+/* Color palette */
+--bg-global: #f6f8fb;
+--card-bg: #ffffff;
+--muted: #667080;
+--text: #0f1724;
+--primary-500: #5676f0;
+--primary-600: #5c5ce8;
+--accent: #f5576c;
+--glass: rgba(255,255,255,0.6);
+
+--input-bg: transparent;
+--muted-border: rgba(15,23,36,0.06);
+/* neutrals */
+--n-100: #ffffff;
+--n-200: #f7f9fc;
+--n-300: #eef3fb;
+--n-400: #e6edf9;
+
+/* shadows */
+--shadow-1: 0 6px 18px rgba(15,23,36,0.06);
+--shadow-2: 0 12px 40px rgba(15,23,36,0.08);
+
+/* radii & spacing */
+--radius-sm: 8px;
+--radius-md: 12px;
+--radius-lg: 18px;
+--space-sm: 8px;
+--space-md: 16px;
+--space-lg: 24px;
+
+/* transitions */
+--ease: cubic-bezier(.2,.9,.2,1);
+--fast: 160ms;
+--med: 240ms;
+
+font-size: 16px;
+--max-width: 1200px;
+}
+
+/* Dark theme overrides */
+body.dark {
+--bg-global: #0b1020;
+--card-bg: rgba(17,21,32,0.68);
+--muted: #9aa7bf;
+--text: #e6eef8;
+--primary-500: #4b6af5;
+--primary-600: #5a61ff;
+--accent: #ff6b7a;
+--glass: rgba(255,255,255,0.04);
+
+--input-bg: rgba(255,255,255,0.02);
+--muted-border: rgba(255,255,255,0.04);
+--n-100: rgba(255,255,255,0.03);
+--n-200: rgba(255,255,255,0.02);
+--n-300: rgba(255,255,255,0.025);
+--n-400: rgba(255,255,255,0.02);
+
+--shadow-1: 0 8px 28px rgba(2,6,23,0.6);
+--shadow-2: 0 14px 46px rgba(2,6,23,0.6);
+}
+
+/* Base + Reset */
+*{ box-sizing: border-box; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+html,body{ height:100%; }
+body{
+margin:0;
+font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+background: linear-gradient(180deg, var(--bg-global) 0%, color-mix(in srgb, var(--bg-global) 85%, #ffffff 15%) 100%);
+color: var(--text);
+-webkit-font-smoothing:antialiased;
+min-height:100vh;
+line-height:1.45;
+transition: background 300ms var(--ease), color 300ms var(--ease);
+}
+
+/* Containers */
+.dashboard-container{
+max-width: var(--max-width);
+margin: 28px auto;
+padding: 24px;
+}
+
+/* NAVBAR */
+.navbar{
+display:flex;
+align-items:center;
+gap: 20px;
+padding: 14px 18px;
+background: linear-gradient(180deg, color-mix(in srgb, var(--card-bg) 92%, var(--glass) 8%), var(--card-bg));
+border-radius: var(--radius-lg);
+box-shadow: var(--shadow-1);
+align-items:center;
+}
+
+.navbar .brand{
+display:flex;
+align-items:center;
+gap:12px;
+font-weight:700;
+font-family:'Poppins', Inter, sans-serif;
+color:var(--primary-600);
+font-size:1.25rem;
+white-space:nowrap;
+}
+
+.navbar .brand .logo {
+display:inline-flex;
+width:40px; height:40px; border-radius:10px;
+align-items:center; justify-content:center;
+background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+color:white; font-weight:800; box-shadow: 0 6px 20px rgba(86,118,240,0.18);
+}
+
+/* nav links */
+.navbar .nav-left{ display:flex; gap:14px; align-items:center; margin-left: 16px; }
+.navbar a.nav-link{
+color:var(--muted); text-decoration:none; font-weight:600; padding:8px 10px; border-radius:10px;
+transition: all var(--med) var(--ease);
+display:inline-flex; align-items:center; gap:8px;
+}
+.navbar a.nav-link:hover{ background: color-mix(in srgb, var(--primary-500) 8%, transparent); color:var(--primary-600); transform:translateY(-2px); }
+
+/* Right area (messages, search, profile) */
+.nav-actions{ margin-left:auto; display:flex; gap:10px; align-items:center; }
+
+/* Icon buttons */
+.icon-btn{
+display:inline-flex; align-items:center; justify-content:center;
+width:44px; height:44px; border-radius:12px; border:none;
+background: transparent; color:var(--muted); cursor:pointer;
+transition: all var(--fast) var(--ease);
+position:relative;
+}
+.icon-btn:hover{ transform: translateY(-3px); color:var(--primary-600); background: color-mix(in srgb, var(--primary-500) 7%, transparent); }
+
+/* profile avatar */
+.profile-avatar{
+width:44px; height:44px; border-radius:12px; overflow:hidden;
+display:inline-flex; align-items:center; justify-content:center;
+border: 1px solid color-mix(in srgb, var(--primary-600) 12%, transparent);
+background: linear-gradient(180deg, var(--n-100), var(--n-200));
+box-shadow: var(--shadow-1);
+}
+
+/* Unread badge (small round) */
+.msg-unread-badge{
+position:absolute; top:-6px; right:-6px;
+display:inline-flex; align-items:center; justify-content:center;
+width:18px; height:18px; border-radius:999px;
+background:var(--accent); color:white; font-weight:700; font-size:0.68rem;
+box-shadow: 0 6px 16px rgba(245,87,108,0.22);
+}
+
+/* Search modal */
+#navSearchModal{
+display:none;
+position:fixed;
+top:88px; right:22px;
+width:360px; max-width:94%;
+z-index:2000;
+}
+#navSearchModal .panel{
+padding:12px; border-radius:12px; background: linear-gradient(180deg, rgba(255,255,255,0.9), var(--card-bg));
+box-shadow: var(--shadow-2); backdrop-filter: blur(6px);
+}
+#navSearchModal input[type="search"]{
+width:100%; padding:10px 12px; border-radius:10px; border:1px solid color-mix(in srgb,var(--muted) 8%, transparent);
+font-size:0.95rem; outline:none; background:transparent;
+color:var(--text);
+}
+
+/* Forms, cards and panels */
+.form-card{
+background: linear-gradient(180deg, var(--card-bg), color-mix(in srgb, var(--card-bg) 96%, var(--glass) 4%));
+padding:28px; border-radius:16px; box-shadow:var(--shadow-2); max-width:540px; margin: 20px auto;
+}
+.form-card h2{ font-family:'Poppins', Inter, sans-serif; color:var(--primary-600); font-size:1.6rem; margin-bottom:16px;}
+.form-group label{ display:block; margin-bottom:8px; color:var(--muted); font-weight:700;}
+.form-group input, .form-group textarea, .form-group select{
+width:100%; padding:12px 14px; border-radius:10px; border:1px solid color-mix(in srgb,var(--muted) 10%, transparent); background:transparent;
+transition: box-shadow var(--fast) var(--ease), border-color var(--fast) var(--ease);
+color: var(--text); font-family: inherit;
+}
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus { box-shadow: 0 8px 30px rgba(86,118,240,0.08); border-color:var(--primary-500); }
+
+/* Buttons */
+.btn{
+display:inline-flex; gap:10px; align-items:center; justify-content:center;
+padding:10px 18px; border-radius:12px; color:white; background: linear-gradient(90deg,var(--primary-500),var(--primary-600));
+border:none; font-weight:800; cursor:pointer; transition: transform 200ms var(--ease), box-shadow 200ms var(--ease);
+}
+.btn:hover{ transform: translateY(-4px); box-shadow: 0 14px 40px rgba(86,118,240,0.16); }
+
+/* Secondary button */
+.btn-secondary{
+padding:10px 14px; border-radius:12px; background:linear-gradient(90deg,#f093fb,#f5576c); color:white; font-weight:700;
+}
+.btn-secondary:hover{ transform: translateY(-3px); }
+
+/* Flash messages */
+.flash-message{
+padding:12px 16px; border-radius:10px; margin-bottom:12px; font-weight:700; color:var(--text);
+background: linear-gradient(180deg, color-mix(in srgb, var(--card-bg) 96%, var(--glass) 4%), var(--card-bg));
+border: 1px solid color-mix(in srgb, var(--muted) 8%, transparent);
+}
+.flash-message.success{ background: linear-gradient(180deg,#e6faf2,#d4f6e9); color:#0f5132; }
+.flash-message.error{ background: linear-gradient(180deg,#fde9ed,#fbe3e8); color:#6b1220; }
+
+/* Cards/tiles for stats and rides */
+.stat-card, .rides-container, .ride-card, .profile-section{
+background: linear-gradient(180deg, var(--card-bg), color-mix(in srgb, var(--card-bg) 96%, var(--glass) 4%));
+border-radius: var(--radius-md); padding:18px; box-shadow: var(--shadow-1);
+color: var(--text);
+}
+
+/* Rides */
+.ride-card{ display:flex; justify-content:space-between; gap:12px; align-items:center; border-left: 6px solid var(--primary-500); }
+
+/* Messages */
+.messages-wrapper{
+background: linear-gradient(180deg,var(--card-bg), color-mix(in srgb,var(--card-bg) 96%,var(--glass) 4%)); padding:18px; border-radius:16px; box-shadow:var(--shadow-1);
+max-height:60vh; overflow:auto;
+}
+.message{ max-width:70%; padding:12px 14px; border-radius:12px; margin-bottom:10px; word-wrap:break-word; box-shadow: 0 6px 18px rgba(12,14,20,0.02); color:var(--text); }
+.message.sent{ align-self:flex-end; background: linear-gradient(90deg,var(--primary-500),var(--primary-600)); color:white; }
+.message.received{ align-self:flex-start; background: linear-gradient(180deg, #fbfcff, #f4f7ff); color:var(--text); border:1px solid color-mix(in srgb,var(--muted) 6%, transparent); }
+.message.system{ align-self:center; background:transparent; color:var(--muted); opacity:0.9; font-weight:600; }
+
+/* Profile */
+.profile-header{ display:flex; gap:20px; align-items:flex-start; padding:18px; border-radius:16px; background:linear-gradient(180deg,var(--card-bg), color-mix(in srgb,var(--card-bg) 98%, var(--glass) 2%)); box-shadow:var(--shadow-1); color:var(--text); }
+.profile-avatar-large{ width:150px; height:150px; border-radius:20px; overflow:hidden; box-shadow:var(--shadow-2); border: 1px solid color-mix(in srgb,var(--muted) 6%, transparent); background: linear-gradient(135deg, var(--n-100), var(--n-200)); display:inline-flex; align-items:center; justify-content:center; }
+
+/* Ensure circle option */
+.profile-avatar-large.circle{ border-radius:50%; }
+
+/* Avatar image */
+.profile-avatar-large img{ width:100%; height:100%; object-fit:cover; display:block; }
+
+/* Profile text */
+.profile-username{ font-size:1.6rem; font-weight:800; color:var(--text); margin:0; }
+.profile-bio{ color:var(--muted); line-height:1.6; }
+
+/* Upload / Change Photo button */
+.upload-btn {
+display: inline-flex;
+align-items: center;
+gap: 8px;
+padding: 9px 12px;
+border-radius: 10px;
+background: linear-gradient(180deg, color-mix(in srgb, var(--card-bg) 96%, var(--glass) 4%), var(--card-bg));
+border: 1px solid color-mix(in srgb, var(--muted) 10%, transparent);
+cursor: pointer;
+color: var(--text);
+font-weight: 700;
+text-decoration: none;
+transition: transform 180ms var(--ease), box-shadow 180ms var(--ease);
+box-shadow: 0 6px 18px rgba(2,6,23,0.03);
+}
+.upload-btn .icon { font-size: 1.05rem; }
+.upload-btn:hover { transform: translateY(-3px); box-shadow: 0 14px 40px rgba(86,118,240,0.06); color: var(--primary-600); }
+
+/* Hidden native file input (accessible) */
+.hidden-file-input {
+position: absolute !important;
+width: 1px;
+height: 1px;
+padding: 0;
+margin: -1px;
+overflow: hidden;
+clip: rect(0 0 0 0);
+white-space: nowrap;
+border: 0;
+}
+
+/* File preview label text */
+.file-preview {
+display:inline-block;
+margin-left:10px;
+color: var(--muted);
+font-size: 0.95rem;
+vertical-align: middle;
+max-width: 320px;
+overflow: hidden;
+text-overflow: ellipsis;
+white-space: nowrap;
+}
+
+/* Inputs and textareas adapt to dark mode */
+.form-group input,
+.form-group textarea,
+.form-group select,
+input[type="text"],
+input[type="search"],
+textarea {
+color: var(--text);
+background: transparent;
+border: 1px solid color-mix(in srgb,var(--muted) 10%, transparent);
+font-family: inherit;
+}
+
+/* Buttons consistency */
+.btn { font-weight: 800; letter-spacing: 0.2px; }
+
+/* Tighter mobile adjustments */
+@media (max-width:900px){
+.navbar{ flex-wrap:wrap; gap:12px; padding:12px; }
+.nav-left{ order:1; width:100%; }
+.nav-actions{ order:2; width:100%; justify-content:flex-end; }
+.dashboard-container{ padding:16px; }
+.ride-card{ flex-direction:column; align-items:flex-start; }
+.profile-header{ flex-direction:column; align-items:center; text-align:center; }
+}
+
+/* Micro animation helpers */
+.fade-in{ animation: fadeIn 360ms var(--ease) both; }
+@keyframes fadeIn { from{ opacity:0; transform:translateY(6px);} to{ opacity:1; transform:none;} }
+
+/* ---------- Dark-mode overrides for inline-white backgrounds and other common issues ---------- /
+/ These rules help when templates include inline styles like background: white; or use .profile-section etc. */
+body.dark .flash-message,
+body.dark .profile-section,
+body.dark .form-card,
+body.dark .edit-card,
+body.dark .profile-header,
+body.dark .comments-section,
+body.dark .ride-card-public,
+body.dark .comment,
+body.dark .user-card {
+background: linear-gradient(180deg, rgba(255,255,255,0.02), var(--card-bg));
+color: var(--text);
+border-color: rgba(255,255,255,0.03);
+box-shadow: var(--shadow-1);
+}
+
+/* Force readable text color for elements that might be light in templates */
+body.dark .flash-message,
+body.dark .comment-text,
+body.dark .ride-details-public,
+body.dark .ride-description,
+body.dark .profile-bio,
+body.dark .stat-label,
+body.dark .stat-value,
+body.dark .user-name {
+color: var(--text);
+}
+
+/* Make sure links/buttons remain visible */
+body.dark a, body.dark a.nav-link { color: var(--primary-600); }
+body.dark .btn, body.dark .btn-secondary { color: white; }
+
+/* Profile menu: hidden/show (keeps consistent) */
+.profile { position: relative; display: inline-block; }
+.profile .profile-menu{
+display: none;
+position: absolute;
+right: 0;
+top: 54px;
+min-width: 180px;
+padding: 8px;
+border-radius: 10px;
+background: linear-gradient(180deg, var(--card-bg), color-mix(in srgb, var(--card-bg) 96%, var(--glass) 4%));
+box-shadow: var(--shadow-2);
+z-index: 1600;
+transform: translateY(-6px);
+opacity: 0;
+transition: transform 180ms var(--ease), opacity 180ms var(--ease);
+}
+.profile .profile-menu a{
+display: block;
+padding: 10px 12px;
+border-radius: 8px;
+text-decoration: none;
+color: var(--text);
+font-weight: 700;
+transition: background 160ms var(--ease), color 160ms var(--ease);
+}
+.profile .profile-menu a:hover{
+background: color-mix(in srgb, var(--primary-500) 6%, transparent);
+color: var(--primary-600);
+}
+.profile:hover .profile-menu,
+.profile:focus-within .profile-menu,
+.profile.open .profile-menu{
+display: block;
+transform: translateY(0);
+opacity: 1;
+}
+
+/* Small adjustments for file-list previews and long text */
+.file-preview { max-width: 100%; word-break: break-all; }
+
+/* Accessibility: high contrast focus outlines */
+a:focus, button:focus, .upload-btn:focus {
+outline: 3px solid color-mix(in srgb, var(--primary-600) 20%, transparent);
+outline-offset: 2px;
+}
+
+/* Legacy browser fallbacks: color-mix is modern; provide a safe fallback color where critical /
+/ E.g. for nav link hover background fallback */
+.navbar a.nav-link:hover{
+background: rgba(86,118,240,0.06);
+}
+
+/* ======= Dark-mode fixes & button polishing (append) ======= */
+
+/* 1) Strong button styles for profile/action buttons (consistent in both themes) */
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: 10px;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  color: white;
+  background: linear-gradient(90deg, var(--primary-500), var(--primary-600));
+  box-shadow: 0 8px 28px rgba(86,118,240,0.12);
+  transition: transform 160ms var(--ease), box-shadow 160ms var(--ease);
+}
+.action-btn:hover { transform: translateY(-3px); box-shadow: 0 18px 48px rgba(86,118,240,0.16); }
+
+/* Specific variants */
+.action-btn.follow-btn { background: linear-gradient(90deg, var(--primary-500), var(--primary-600)); }
+.action-btn.follow-btn.unfollow { background: linear-gradient(90deg, #f5576c, #f093fb); }
+
+.action-btn.message-btn { background: linear-gradient(90deg, #2bb673, #27a064); box-shadow: 0 8px 22px rgba(39,160,100,0.12); }
+.action-btn.garage-btn { background: linear-gradient(90deg, #ffb347, #ffcc33); color: #111; box-shadow: 0 8px 22px rgba(255,180,60,0.10); }
+
+/* Ensure anchor-based action buttons lose default link blue */
+a.action-btn { color: inherit; }
+
+/* 2) Dark-mode forcing for template white blocks (covers inline style=background:white and many class rules)
+   Uses !important to override template-level CSS rules and inline-style background declarations. */
+body.dark .messages-wrapper,
+body.dark .conversation-list,
+body.dark .edit-card,
+body.dark .create-card,
+body.dark .friend-card,
+body.dark .user-checkbox,
+body.dark .ride-card-public,
+body.dark .comments-section,
+body.dark .comment,
+body.dark .profile-section,
+body.dark .profile-header,
+body.dark .form-card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), var(--card-bg)) !important;
+  color: var(--text) !important;
+  border-color: rgba(255,255,255,0.03) !important;
+  box-shadow: var(--shadow-1) !important;
+}
+
+/* 2a) Generic selector to catch inline style backgrounds like style="background: white" or style="background:white" */
+body.dark [style*="background: white"],
+body.dark [style*="background:white"],
+body.dark [style*="background: #fff"],
+body.dark [style*="background:#fff"],
+body.dark [style*="background:#ffffff"],
+body.dark [style*="background: #ffffff"] {
+  background: var(--card-bg) !important;
+  color: var(--text) !important;
+  border-color: rgba(255,255,255,0.03) !important;
+  box-shadow: var(--shadow-1) !important;
+}
+
+/* 3) Fix common inline color problems where templates used #666 or #333 inline */
+body.dark [style*="color: #666"],
+body.dark [style*="color:#666"] {
+  color: var(--muted) !important;
+}
+body.dark [style*="color: #333"],
+body.dark [style*="color:#333"],
+body.dark [style*="color: #333333"],
+body.dark [style*="color:#333333"] {
+  color: var(--text) !important;
+}
+
+/* 4) Ensure form inputs and labels remain visible in dark mode (higher specificity) */
+body.dark .form-group label,
+body.dark label,
+body.dark input,
+body.dark textarea,
+body.dark select,
+body.dark .comment-text,
+body.dark .ride-details-public,
+body.dark .ride-description,
+body.dark .profile-bio,
+body.dark .stat-label {
+  color: var(--text) !important;
+}
+
+/* 5) Make sure plain anchors that look like blue links are more neutral and themed inside main content */
+.dashboard-container a:not(.nav-link):not(.action-btn):not(.btn) {
+  color: var(--primary-600);
+  text-decoration: none;
+  font-weight: 700;
+}
+body.dark .dashboard-container a:not(.nav-link):not(.action-btn):not(.btn) {
+  color: var(--primary-600);
+}
+
+/* 6) Special: conversation/message bubbles вЂ” ensure text contrast */
+body.dark .message.received { background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.03)) !important; color: var(--text) !important; border: 1px solid rgba(255,255,255,0.03) !important; }
+body.dark .message.sent { box-shadow: 0 8px 22px rgba(75,106,245,0.14) !important; }
+
+/* 7) Small tweaks: file-preview and upload button visibility */
+body.dark .upload-btn { border-color: rgba(255,255,255,0.03); color: var(--text); background: linear-gradient(180deg, var(--card-bg), color-mix(in srgb, var(--card-bg) 96%, var(--glass) 4%)); }
+body.dark .upload-btn:hover { color: var(--primary-600); }
+
+/* 8) Focus outline accessibility in dark mode */
+body.dark a:focus, body.dark button:focus, body.dark .upload-btn:focus {
+  outline: 3px solid color-mix(in srgb, var(--primary-600) 22%, transparent) !important;
+  outline-offset: 2px;
+}
+
+/* 9) Safety: ensure text inside any element with inline style is readable (only in narrow scope: dashboard container children)
+   This is conservative (not global) and uses !important because inline styles are common in templates.
+*/
+body.dark .dashboard-container [style] {
+  color: var(--text) !important;
+}
+
+/* 10) Mobile small adjustments */
+@media (max-width:700px) {
+  .action-btn { padding: 10px 12px; font-size: 0.95rem; }
+}
+
+/* ---------- Consolidated UI fixes (dark-mode + emoji + buttons + separators) ---------- */
+
+/* Emoji + font stack for ride descriptions and comments */
+.ride-description,
+.ride-details-public,
+.ride-date-public,
+.comment-text,
+.comments-title,
+.stat-label,
+.user-name,
+.profile-bio,
+.message {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  color: var(--text);
+}
+
+/* Country select & options */
+select, select option, #country, #country option {
+  color: var(--text);
+  background: transparent;
+  font-family: inherit;
+}
+body.dark select, body.dark select option, body.dark #country, body.dark #country option {
+  color: var(--text) !important;
+  background: var(--card-bg) !important;
+}
+
+/* Date inputs */
+input[type="date"], input[type="date"]::-webkit-datetime-edit {
+  color: var(--text);
+  background: transparent;
+}
+
+/* Tag styles fallback (remove white backgrounds) */
+.tags-container, .tag-label, .custom-tags-input {
+  background: linear-gradient(180deg, var(--card-bg), color-mix(in srgb, var(--card-bg) 96%, var(--glass) 4%));
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--muted) 10%, transparent);
+}
+
+/* Ride list separators */
+.ride-list .ride-card-public {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--muted) 12%, transparent);
+}
+
+/* Tools tab buttons */
+.tab-button {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb,var(--muted) 8%, transparent);
+  background: linear-gradient(180deg, var(--card-bg), color-mix(in srgb,var(--card-bg) 96%, var(--glass) 4%));
+  color: var(--text);
+  font-weight: 700;
+}
+.tab-button.active { background: linear-gradient(90deg,var(--primary-500),var(--primary-600)); color: #fff; border-color: transparent; }
+
+/* Post / Save / Comment buttons */
+.post-btn, .save-btn, .comment-submit, .btn {
+  padding: 9px 14px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(90deg,var(--primary-500),var(--primary-600));
+  color: white;
+  font-weight:800;
+  cursor: pointer;
+}
+.post-btn.secondary, .save-btn.secondary { background: linear-gradient(90deg,#f093fb,#f5576c); }
+
+/* Ensure anchors inside dashboard don't appear as default blue */
+.dashboard-container a { color: inherit; text-decoration:none; }
+
+/* Small responsive */
+@media (max-width:700px) {
+  .tag-label { padding:10px; font-size:0.95rem; }
+  .logo-hero { width:76px; height:76px; }
+}
+
+/* ---------- Fix logo sizing / prevent overflow ---------- */
+
+/* Generic img safety: keep images from distorting layout */
+img { max-width: 100%; height: auto; display: inline-block; }
+
+/* Navbar small logo (left corner) */
+.logo-img {
+  width: 44px !important;
+  height: 44px !important;
+  object-fit: contain;
+  display: inline-block;
+  vertical-align: middle;
+  border-radius: 8px;
+}
+
+/* Hero logo (dashboard) */
+.logo-hero {
+  width: 92px !important;
+  height: 92px !important;
+  object-fit: contain;
+  display: block;
+  border-radius: 12px;
+}
+
+/* Very large images fallback: cap size so they can't overflow entire page */
+.logo-img, .logo-hero {
+  max-width: 220px;
+}
+
+/* If a template used the logo as a background accidentally, ensure it doesn't tile */
+[data-logo-bg], .brand, .logo-bg {
+  background-repeat: no-repeat !important;
+  background-size: contain !important;
+  background-position: center !important;
+}
+
+/* Additional tag styles */
+.tag-badge {
+  background: color-mix(in srgb, var(--primary-500) 6%, transparent);
+  color: var(--primary-600);
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.tag-group { margin-top: 8px; display:flex; gap:8px; flex-wrap:wrap; }
+
+.section-label, .field-label {
+  display:block;
+  margin-bottom:8px;
+  font-weight:600;
+  color: var(--muted);
+}
+
+.tags-grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(140px,1fr)); gap:8px; }
+.tag-label { margin-left:6px; color: var(--text); }
+
+.custom-tags-input, .tag-checkbox, .comment-input, input[type="text"], textarea {
+  background: var(--input-bg);
+  color: var(--text);
+  border: 1px solid var(--muted-border);
+}
+
+body.dark .form-card, body.dark .custom-tags-input, body.dark .tags-grid, body.dark .tags-note {
+  /* ensure the edit form respects dark mode */
+  background: var(--card-bg);
+  color: var(--text);
+}
+
+/* ===========================
+MotoLogv2 вЂ” Modern UI Theme (fixed)
+
+Light theme by default
+Add .dark to <body> to enable dark theme
+Uses CSS variables for easy adjustments
+Dark-mode contrast & font fixes included
+=========================== */
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Poppins:wght@600;700&display=swap');
+
+:root{
+/* Color palette */
+--bg-global: #f6f8fb;
+--card-bg: #ffffff;
+--muted: #667080;
+--text: #0f1724;
+--primary-500: #5676f0;
+--primary-600: #5c5ce8;
+--accent: #f5576c;
+--glass: rgba(255,255,255,0.6);
+
+--input-bg: transparent;
+--muted-border: rgba(15,23,36,0.06);
+/* neutrals */
+--n-100: #ffffff;
+--n-200: #f7f9fc;
+--n-300: #eef3fb;
+--n-400: #e6edf9;
+
+/* shadows */
+--shadow-1: 0 6px 18px rgba(15,23,36,0.06);
+--shadow-2: 0 12px 40px rgba(15,23,36,0.08);
+
+/* radii & spacing */
+--radius-sm: 8px;
+--radius-md: 12px;
+--radius-lg: 18px;
+--space-sm: 8px;
+--space-md: 16px;
+--space-lg: 24px;
+
+/* transitions */
+--ease: cubic-bezier(.2,.9,.2,1);
+--fast: 160ms;
+--med: 240ms;
+
+font-size: 16px;
+--max-width: 1200px;
+}
+
+/* Dark theme overrides */
+body.dark {
+--bg-global: #0b1020;
+--card-bg: rgba(17,21,32,0.68);
+--muted: #9aa7bf;
+--text: #e6eef8;
+--primary-500: #4b6af5;
+--primary-600: #5a61ff;
+--accent: #ff6b7a;
+--glass: rgba(255,255,255,0.04);
+
+--input-bg: rgba(255,255,255,0.02);
+--muted-border: rgba(255,255,255,0.04);
+--n-100: rgba(255,255,255,0.03);
+--n-200: rgba(255,255,255,0.02);
+--n-300: rgba(255,255,255,0.025);
+--n-400: rgba(255,255,255,0.02);
+
+--shadow-1: 0 8px 28px rgba(2,6,23,0.6);
+--shadow-2: 0 14px 46px rgba(2,6,23,0.6);
+}
+
+/* Base + Reset */
+*{ box-sizing: border-box; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+html,body{ height:100%; }
+body{
+margin:0;
+font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+background: linear-gradient(180deg, var(--bg-global) 0%, color-mix(in srgb, var(--bg-global) 85%, #ffffff 15%) 100%);
+color: var(--text);
+-webkit-font-smoothing:antialiased;
+min-height:100vh;
+line-height:1.45;
+transition: background 300ms var(--ease), color 300ms var(--ease);
+}
+
+/* Containers */
+.dashboard-container{
+max-width: var(--max-width);
+margin: 28px auto;
+padding: 24px;
+}
+
+/* NAVBAR */
+.navbar{
+display:flex;
+align-items:center;
+gap: 20px;
+padding: 14px 18px;
+background: linear-gradient(180deg, color-mix(in srgb, var(--card-bg) 92%, var(--glass) 8%), var(--card-bg));
+border-radius: var(--radius-lg);
+box-shadow: var(--shadow-1);
+align-items:center;
+}
+
+.navbar .brand{
+display:flex;
+align-items:center;
+gap:12px;
+font-weight:700;
+font-family:'Poppins', Inter, sans-serif;
+color:var(--primary-600);
+font-size:1.25rem;
+white-space:nowrap;
+}
+
+.navbar .brand .logo {
+display:inline-flex;
+width:40px; height:40px; border-radius:10px;
+align-items:center; justify-content:center;
+background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+color:white; font-weight:800; box-shadow: 0 6px 20px rgba(86,118,240,0.18);
+}
+
+/* nav links */
+.navbar .nav-left{ display:flex; gap:14px; align-items:center; margin-left: 16px; }
+.navbar a.nav-link{
+color:var(--muted); text-decoration:none; font-weight:600; padding:8px 10px; border-radius:10px;
+transition: all var(--med) var(--ease);
+display:inline-flex; align-items:center; gap:8px;
+}
+.navbar a.nav-link:hover{ background: color-mix(in srgb, var(--primary-500) 8%, transparent); color:var(--primary-600); transform:translateY(-2px); }
+
+/* Right area (messages, search, profile) */
+.nav-actions{ margin-left:auto; display:flex; gap:10px; align-items:center; }
+
+/* Icon buttons */
+.icon-btn{
+display:inline-flex; align-items:center; justify-content:center;
+width:44px; height:44px; border-radius:12px; border:none;
+background: transparent; color:var(--muted); cursor:pointer;
+transition: all var(--fast) var(--ease);
+position:relative;
+}
+.icon-btn:hover{ transform: translateY(-3px); color:var(--primary-600); background: color-mix(in srgb, var(--primary-500) 7%, transparent); }
+
+/* profile avatar */
+.profile-avatar{
+width:44px; height:44px; border-radius:12px; overflow:hidden;
+display:inline-flex; align-items:center; justify-content:center;
+border: 1px solid color-mix(in srgb, var(--primary-600) 12%, transparent);
+background: linear-gradient(180deg, var(--n-100), var(--n-200));
+box-shadow: var(--shadow-1);
+}
+
+/* Unread badge (small round) */
+.msg-unread-badge{
+position:absolute; top:-6px; right:-6px;
+display:inline-flex; align-items:center; justify-content:center;
+width:18px; height:18px; border-radius:999px;
+background:var(--accent); color:white; font-weight:700; font-size:0.68rem;
+box-shadow: 0 6px 16px rgba(245,87,108,0.22);
+}
+
+/* Search modal */
+#navSearchModal{
+display:none;
+position:fixed;
+top:88px; right:22px;
+width:360px; max-width:94%;
+z-index:2000;
+}
+#navSearchModal .panel{
+padding:12px; border-radius:12px; background: linear-gradient(180deg, rgba(255,255,255,0.9), var(--card-bg));
+box-shadow: var(--shadow-2); backdrop-filter: blur(6px);
+}
+#navSearchModal input[type="search"]{
+width:100%; padding:10px 12px; border-radius:10px; border:1px solid color-mix(in srgb,var(--muted) 8%, transparent);
+font-size:0.95rem; outline:none; background:transparent;
+color:var(--text);
+}
+
+/* Forms, cards and panels */
+.form-card{
+background: linear-gradient(180deg, var(--card-bg), color-mix(in srgb, var(--card-bg) 96%, var(--glass) 4%));
+padding:28px; border-radius:16px; box-shadow:var(--shadow-2); max-width:540px; margin: 20px auto;
+}
+.form-card h2{ font-family:'Poppins', Inter, sans-serif; color:var(--primary-600); font-size:1.6rem; margin-bottom:16px;}
+.form-group label{ display:block; margin-bottom:8px; color:var(--muted); font-weight:700;}
+.form-group input, .form-group textarea, .form-group select{
+width:100%; padding:12px 14px; border-radius:10px; border:1px solid color-mix(in srgb,var(--muted) 10%, transparent); background:transparent;
+transition: box-shadow var(--fast) var(--ease), border-color var(--fast) var(--ease);
+color: var(--text); font-family: inherit;
+}
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus { box-shadow: 0 8px 30px rgba(86,118,240,0.08); border-color:var(--primary-500); }
+
+/* Buttons */
+.btn{
+display:inline-flex; gap:10px; align-items:center; justify-content:center;
+padding:10px 18px; border-radius:12px; color:white; background: linear-gradient(90deg,var(--primary-500),var(--primary-600));
+border:none; font-weight:800; cursor:pointer; transition: transform 200ms var(--ease), box-shadow 200ms var(--ease);
+}
+.btn:hover{ transform: translateY(-4px); box-shadow: 0 14px 40px rgba(86,118,240,0.16); }
+
+/* Secondary button */
+.btn-secondary{
+padding:10px 14px; border-radius:12px; background:linear-gradient(90deg,#f093fb,#f5576c); color:white; font-weight:700;
+}
+.btn-secondary:hover{ transform: translateY(-3px); }
+
+/* Flash messages */
+.flash-message{
+padding:12px 16px; border-radius:10px; margin-bottom:12px; font-weight:700; color:var(--text);
+background: linear-gradient(180deg, color-mix(in srgb, var(--card-bg) 96%, var(--glass) 4%), var(--card-bg));
+border: 1px solid color-mix(in srgb, var(--muted) 8%, transparent);
+}
+.flash-message.success{ background: linear-gradient(180deg,#e6faf2,#d4f6e9); color:#0f5132; }
+.flash-message.error{ background: linear-gradient(180deg,#fde9ed,#fbe3e8); color:#6b1220; }
+
+/* Cards/tiles for stats and rides */
+.stat-card, .rides-container, .ride-card, .profile-section{
+background: linear-gradient(180deg, var(--card-bg), color-mix(in srgb, var(--card-bg) 96%, var(--glass) 4%));
+border-radius: var(--radius-md); padding:18px; box-shadow: var(--shadow-1);
+color: var(--text);
+}
+
+/* Rides */
+.ride-card{ display:flex; justify-content:space-between; gap:12px; align-items:center; border-left: 6px solid var(--primary-500); }
+
+/* Messages */
+.messages-wrapper{
+background: linear-gradient(180deg,var(--card-bg), color-mix(in srgb,var(--card-bg) 96%,var(--glass) 4%)); padding:18px; border-radius:16px; box-shadow:var(--shadow-1);
+max-height:60vh; overflow:auto;
+}
+.message{ max-width:70%; padding:12px 14px; border-radius:12px; margin-bottom:10px; word-wrap:break-word; box-shadow: 0 6px 18px rgba(12,14,20,0.02); color:var(--text); }
+.message.sent{ align-self:flex-end; background: linear-gradient(90deg,var(--primary-500),var(--primary-600)); color:white; }
+.message.received{ align-self:flex-start; background: linear-gradient(180deg, #fbfcff, #f4f7ff); color:var(--text); border:1px solid color-mix(in srgb,var(--muted) 6%, transparent); }
+.message.system{ align-self:center; background:transparent; color:var(--muted); opacity:0.9; font-weight:600; }
+
+/* Profile */
+.profile-header{ display:flex; gap:20px; align-items:flex-start; padding:18px; border-radius:16px; background:linear-gradient(180deg,var(--card-bg), color-mix(in srgb,var(--card-bg) 98%, var(--glass) 2%)); box-shadow:var(--shadow-1); color:var(--text); }
+.profile-avatar-large{ width:150px; height:150px; border-radius:20px; overflow:hidden; box-shadow:var(--shadow-2); border: 1px solid color-mix(in srgb,var(--muted) 6%, transparent); background: linear-gradient(135deg, var(--n-100), var(--n-200)); display:inline-flex; align-items:center; justify-content:center; }
+
+/* Ensure circle option */
+.profile-avatar-large.circle{ border-radius:50%; }
+
+/* Avatar image */
+.profile-avatar-large img{ width:100%; height:100%; object-fit:cover; display:block; }
+
+/* Profile text */
+.profile-username{ font-size:1.6rem; font-weight:800; color:var(--text); margin:0; }
+.profile-bio{ color:var(--muted); line-height:1.6; }
+
+/* Upload / Change Photo button */
+.upload-btn {
+display: inline-flex;
+align-items: center;
+gap: 8px;
+padding: 9px 12px;
+border-radius: 10px;
+background: linear-gradient(180deg, color-mix(in srgb, var(--card-bg) 96%, var(--glass) 4%), var(--card-bg));
+border: 1px solid color-mix(in srgb, var(--muted) 10%, transparent);
+cursor: pointer;
+color: var(--text);
+font-weight: 700;
+text-decoration: none;
+transition: transform 180ms var(--ease), box-shadow 180ms var(--ease);
+box-shadow: 0 6px 18px rgba(2,6,23,0.03);
+}
+.upload-btn .icon { font-size: 1.05rem; }
+.upload-btn:hover { transform: translateY(-3px); box-shadow: 0 14px 40px rgba(86,118,240,0.06); color: var(--primary-600); }
+
+/* Hidden native file input (accessible) */
+.hidden-file-input {
+position: absolute !important;
+width: 1px;
+height: 1px;
+padding: 0;
+margin: -1px;
+overflow: hidden;
+clip: rect(0 0 0 0);
+white-space: nowrap;
+border: 0;
+}
+
+/* File preview label text */
+.file-preview {
+display:inline-block;
+margin-left:10px;
+color: var(--muted);
+font-size: 0.95rem;
+vertical-align: middle;
+max-width: 320px;
+overflow: hidden;
+text-overflow: ellipsis;
+white-space: nowrap;
+}
+
+/* Inputs and textareas adapt to dark mode */
+.form-group input,
+.form-group textarea,
+.form-group select,
+input[type="text"],
+input[type="search"],
+textarea {
+color: var(--text);
+background: transparent;
+border: 1px solid color-mix(in srgb,var(--muted) 10%, transparent);
+font-family: inherit;
+}
+
+/* Buttons consistency */
+.btn { font-weight: 800; letter-spacing: 0.2px; }
+
+/* Tighter mobile adjustments */
+@media (max-width:900px){
+.navbar{ flex-wrap:wrap; gap:12px; padding:12px; }
+.nav-left{ order:1; width:100%; }
+.nav-actions{ order:2; width:100%; justify-content:flex-end; }
+.dashboard-container{ padding:16px; }
+.ride-card{ flex-direction:column; align-items:flex-start; }
+.profile-header{ flex-direction:column; align-items:center; text-align:center; }
+}
+
+/* Micro animation helpers */
+.fade-in{ animation: fadeIn 360ms var(--ease) both; }
+@keyframes fadeIn { from{ opacity:0; transform:translateY(6px);} to{ opacity:1; transform:none;} }
+
+/* ---------- Dark-mode overrides for inline-white backgrounds and other common issues ---------- /
+/ These rules help when templates include inline styles like background: white; or use .profile-section etc. */
+body.dark .flash-message,
+body.dark .profile-section,
+body.dark .form-card,
+body.dark .edit-card,
+body.dark .profile-header,
+body.dark .comments-section,
+body.dark .ride-card-public,
+body.dark .comment,
+body.dark .user-card {
+background: linear-gradient(180deg, rgba(255,255,255,0.02), var(--card-bg));
+color: var(--text);
+border-color: rgba(255,255,255,0.03);
+box-shadow: var(--shadow-1);
+}
+
+/* Force readable text color for elements that might be light in templates */
+body.dark .flash-message,
+body.dark .comment-text,
+body.dark .ride-details-public,
+body.dark .ride-description,
+body.dark .profile-bio,
+body.dark .stat-label,
+body.dark .stat-value,
+body.dark .user-name {
+color: var(--text);
+}
+
+/* Make sure links/buttons remain visible */
+body.dark a, body.dark a.nav-link { color: var(--primary-600); }
+body.dark .btn, body.dark .btn-secondary { color: white; }
+
+/* Profile menu: hidden/show (keeps consistent) */
+.profile { position: relative; display: inline-block; }
+.profile .profile-menu{
+display: none;
+position: absolute;
+right: 0;
+top: 54px;
+min-width: 180px;
+padding: 8px;
+border-radius: 10px;
+background: linear-gradient(180deg, var(--card-bg), color-mix(in srgb, var(--card-bg) 96%, var(--glass) 4%));
+box-shadow: var(--shadow-2);
+z-index: 1600;
+transform: translateY(-6px);
+opacity: 0;
+transition: transform 180ms var(--ease), opacity 180ms var(--ease);
+}
+.profile .profile-menu a{
+display: block;
+padding: 10px 12px;
+border-radius: 8px;
+text-decoration: none;
+color: var(--text);
+font-weight: 700;
+transition: background 160ms var(--ease), color 160ms var(--ease);
+}
+.profile .profile-menu a:hover{
+background: color-mix(in srgb, var(--primary-500) 6%, transparent);
+color: var(--primary-600);
+}
+.profile:hover .profile-menu,
+.profile:focus-within .profile-menu,
+.profile.open .profile-menu{
+display: block;
+transform: translateY(0);
+opacity: 1;
+}
+
+/* Small adjustments for file-list previews and long text */
+.file-preview { max-width: 100%; word-break: break-all; }
+
+/* Accessibility: high contrast focus outlines */
+a:focus, button:focus, .upload-btn:focus {
+outline: 3px solid color-mix(in srgb, var(--primary-600) 20%, transparent);
+outline-offset: 2px;
+}
+
+/* Legacy browser fallbacks: color-mix is modern; provide a safe fallback color where critical /
+/ E.g. for nav link hover background fallback */
+.navbar a.nav-link:hover{
+background: rgba(86,118,240,0.06);
+}
+
+/* ======= Dark-mode fixes & button polishing (append) ======= */
+
+/* 1) Strong button styles for profile/action buttons (consistent in both themes) */
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: 10px;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  color: white;
+  background: linear-gradient(90deg, var(--primary-500), var(--primary-600));
+  box-shadow: 0 8px 28px rgba(86,118,240,0.12);
+  transition: transform 160ms var(--ease), box-shadow 160ms var(--ease);
+}
+.action-btn:hover { transform: translateY(-3px); box-shadow: 0 18px 48px rgba(86,118,240,0.16); }
+
+/* Specific variants */
+.action-btn.follow-btn { background: linear-gradient(90deg, var(--primary-500), var(--primary-600)); }
+.action-btn.follow-btn.unfollow { background: linear-gradient(90deg, #f5576c, #f093fb); }
+
+.action-btn.message-btn { background: linear-gradient(90deg, #2bb673, #27a064); box-shadow: 0 8px 22px rgba(39,160,100,0.12); }
+.action-btn.garage-btn { background: linear-gradient(90deg, #ffb347, #ffcc33); color: #111; box-shadow: 0 8px 22px rgba(255,180,60,0.10); }
+
+/* Ensure anchor-based action buttons lose default link blue */
+a.action-btn { color: inherit; }
+
+/* 2) Dark-mode forcing for template white blocks (covers inline style=background:white and many class rules)
+   Uses !important to override template-level CSS rules and inline-style background declarations. */
+body.dark .messages-wrapper,
+body.dark .conversation-list,
+body.dark .edit-card,
+body.dark .create-card,
+body.dark .friend-card,
+body.dark .user-checkbox,
+body.dark .ride-card-public,
+body.dark .comments-section,
+body.dark .comment,
+body.dark .profile-section,
+body.dark .profile-header,
+body.dark .form-card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), var(--card-bg)) !important;
+  color: var(--text) !important;
+  border-color: rgba(255,255,255,0.03) !important;
+  box-shadow: var(--shadow-1) !important;
+}
+
+/* 2a) Generic selector to catch inline style backgrounds like style="background: white" or style="background:white" */
+body.dark [style*="background: white"],
+body.dark [style*="background:white"],
+body.dark [style*="background: #fff"],
+body.dark [style*="background:#fff"],
+body.dark [style*="background:#ffffff"],
+body.dark [style*="background: #ffffff"] {
+  background: var(--card-bg) !important;
+  color: var(--text) !important;
+  border-color: rgba(255,255,255,0.03) !important;
+  box-shadow: var(--shadow-1) !important;
+}
+
+/* 3) Fix common inline color problems where templates used #666 or #333 inline */
+body.dark [style*="color: #666"],
+body.dark [style*="color:#666"] {
+  color: var(--muted) !important;
+}
+body.dark [style*="color: #333"],
+body.dark [style*="color:#333"],
+body.dark [style*="color: #333333"],
+body.dark [style*="color:#333333"] {
+  color: var(--text) !important;
+}
+
+/* 4) Ensure form inputs and labels remain visible in dark mode (higher specificity) */
+body.dark .form-group label,
+body.dark label,
+body.dark input,
+body.dark textarea,
+body.dark select,
+body.dark .comment-text,
+body.dark .ride-details-public,
+body.dark .ride-description,
+body.dark .profile-bio,
+body.dark .stat-label {
+  color: var(--text) !important;
+}
+
+/* 5) Make sure plain anchors that look like blue links are more neutral and themed inside main content */
+.dashboard-container a:not(.nav-link):not(.action-btn):not(.btn) {
+  color: var(--primary-600);
+  text-decoration: none;
+  font-weight: 700;
+}
+body.dark .dashboard-container a:not(.nav-link):not(.action-btn):not(.btn) {
+  color: var(--primary-600);
+}
+
+/* 6) Special: conversation/message bubbles вЂ” ensure text contrast */
+body.dark .message.received { background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.03)) !important; color: var(--text) !important; border: 1px solid rgba(255,255,255,0.03) !important; }
+body.dark .message.sent { box-shadow: 0 8px 22px rgba(75,106,245,0.14) !important; }
+
+/* 7) Small tweaks: file-preview and upload button visibility */
+body.dark .upload-btn { border-color: rgba(255,255,255,0.03); color: var(--text); background: linear-gradient(180deg, var(--card-bg), color-mix(in srgb, var(--card-bg) 96%, var(--glass) 4%)); }
+body.dark .upload-btn:hover { color: var(--primary-600); }
+
+/* 8) Focus outline accessibility in dark mode */
+body.dark a:focus, body.dark button:focus, body.dark .upload-btn:focus {
+  outline: 3px solid color-mix(in srgb, var(--primary-600) 22%, transparent) !important;
+  outline-offset: 2px;
+}
+
+/* 9) Safety: ensure text inside any element with inline style is readable (only in narrow scope: dashboard container children)
+   This is conservative (not global) and uses !important because inline styles are common in templates.
+*/
+body.dark .dashboard-container [style] {
+  color: var(--text) !important;
+}
+
+/* 10) Mobile small adjustments */
+@media (max-width:700px) {
+  .action-btn { padding: 10px 12px; font-size: 0.95rem; }
+}
+
+/* ---------- Consolidated UI fixes (dark-mode + emoji + buttons + separators) ---------- */
+
+/* Emoji + font stack for ride descriptions and comments */
+.ride-description,
+.ride-details-public,
+.ride-date-public,
+.comment-text,
+.comments-title,
+.stat-label,
+.user-name,
+.profile-bio,
+.message {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  color: var(--text);
+}
+
+/* Country select & options */
+select, select option, #country, #country option {
+  color: var(--text);
+  background: transparent;
+  font-family: inherit;
+}
+body.dark select, body.dark select option, body.dark #country, body.dark #country option {
+  color: var(--text) !important;
+  background: var(--card-bg) !important;
+}
+
+/* Date inputs */
+input[type="date"], input[type="date"]::-webkit-datetime-edit {
+  color: var(--text);
+  background: transparent;
+}
+
+/* Tag styles fallback (remove white backgrounds) */
+.tags-container, .tag-label, .custom-tags-input {
+  background: linear-gradient(180deg, var(--card-bg), color-mix(in srgb, var(--card-bg) 96%, var(--glass) 4%));
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--muted) 10%, transparent);
+}
+
+/* Ride list separators */
+.ride-list .ride-card-public {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--muted) 12%, transparent);
+}
+
+/* Tools tab buttons */
+.tab-button {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb,var(--muted) 8%, transparent);
+  background: linear-gradient(180deg, var(--card-bg), color-mix(in srgb,var(--card-bg) 96%, var(--glass) 4%));
+  color: var(--text);
+  font-weight: 700;
+}
+.tab-button.active { background: linear-gradient(90deg,var(--primary-500),var(--primary-600)); color: #fff; border-color: transparent; }
+
+/* Post / Save / Comment buttons */
+.post-btn, .save-btn, .comment-submit, .btn {
+  padding: 9px 14px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(90deg,var(--primary-500),var(--primary-600));
+  color: white;
+  font-weight:800;
+  cursor: pointer;
+}
+.post-btn.secondary, .save-btn.secondary { background: linear-gradient(90deg,#f093fb,#f5576c); }
+
+/* Ensure anchors inside dashboard don't appear as default blue */
+.dashboard-container a { color: inherit; text-decoration:none; }
+
+/* Small responsive */
+@media (max-width:700px) {
+  .tag-label { padding:10px; font-size:0.95rem; }
+  .logo-hero { width:76px; height:76px; }
+}
+
+/* ---------- Fix logo sizing / prevent overflow ---------- */
+
+/* Generic img safety: keep images from distorting layout */
+img { max-width: 100%; height: auto; display: inline-block; }
+
+/* Navbar small logo (left corner) */
+.logo-img {
+  width: 44px !important;
+  height: 44px !important;
+  object-fit: contain;
+  display: inline-block;
+  vertical-align: middle;
+  border-radius: 8px;
+}
+
+/* Hero logo (dashboard) */
+.logo-hero {
+  width: 92px !important;
+  height: 92px !important;
+  object-fit: contain;
+  display: block;
+  border-radius: 12px;
+}
+
+/* Very large images fallback: cap size so they can't overflow entire page */
+.logo-img, .logo-hero {
+  max-width: 220px;
+}
+
+/* If a template used the logo as a background accidentally, ensure it doesn't tile */
+[data-logo-bg], .brand, .logo-bg {
+  background-repeat: no-repeat !important;
+  background-size: contain !important;
+  background-position: center !important;
+}
+
+/* Additional tag styles */
+.tag-badge {
+  background: color-mix(in srgb, var(--primary-500) 6%, transparent);
+  color: var(--primary-600);
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.tag-group { margin-top: 8px; display:flex; gap:8px; flex-wrap:wrap; }
+
+.section-label, .field-label {
+  display:block;
+  margin-bottom:8px;
+  font-weight:600;
+  color: var(--muted);
+}
+
+.tags-grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(140px,1fr)); gap:8px; }
+.tag-label { margin-left:6px; color: var(--text); }
+
+.custom-tags-input, .tag-checkbox, .comment-input, input[type="text"], textarea {
+  background: var(--input-bg);
+  color: var(--text);
+  border: 1px solid var(--muted-border);
+}
+
+body.dark .form-card, body.dark .custom-tags-input, body.dark .tags-grid, body.dark .tags-note {
+  /* ensure the edit form respects dark mode */
+  background: var(--card-bg);
+  color: var(--text);
+}
+
+existing_tags = [t.strip() for t in (ride['tags'] or '').split(',') if t.strip()]

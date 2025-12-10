@@ -13,6 +13,13 @@ ALLOWED_EXT = {'png','jpg','jpeg','gif'}
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+# Tag categories used for grouping tags on display
+TAG_CATEGORIES = {
+    'weather': {'sunny', 'rain', 'cloudy', 'cold'},
+    'terrain': {'gravel', 'offroad', 'highway', 'city'},
+    'style':   {'commute', 'tour', 'sport', 'leisure'}
+}
+
 def query_db(query, args=(), one=False):
     conn = sqlite3.connect('moto_log.db')
     conn.row_factory = sqlite3.Row
@@ -25,6 +32,34 @@ def query_db(query, args=(), one=False):
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.',1)[1].lower() in ALLOWED_EXT
+
+def categorize_tags(tags_str):
+    """
+    Accepts a comma-separated tag string and returns:
+      - groups: dict with keys 'weather','terrain','style','other' -> lists of tags sorted alphabetically
+      - flat: flattened list in the order weather, terrain, style, other
+    """
+    tags = [t.strip() for t in (tags_str or '').split(',') if t.strip()]
+    groups = {'weather': [], 'terrain': [], 'style': [], 'other': []}
+
+    for t in tags:
+        low = t.lower()
+        placed = False
+        for cat, setvals in TAG_CATEGORIES.items():
+            if low in setvals:
+                groups[cat].append(t)
+                placed = True
+                break
+        if not placed:
+            groups['other'].append(t)
+
+    # Sort each group's tags alphabetically (case-insensitive)
+    for k in groups:
+        groups[k] = sorted(groups[k], key=lambda s: s.lower())
+
+    # Flatten in the desired display order
+    flat = groups['weather'] + groups['terrain'] + groups['style'] + groups['other']
+    return groups, flat
 
 # Make query_db available in all templates
 app.jinja_env.globals.update(query_db=query_db)
@@ -83,10 +118,19 @@ def dashboard():
         return redirect(url_for('login'))
 
     user_id = session['user_id']
-    rides = query_db('SELECT * FROM rides WHERE user_id = ? ORDER BY date DESC', (user_id,))
-    total_rides = len(rides)
-    total_distance = sum(ride['distance'] for ride in rides) if rides else 0
-    total_time = sum(ride['time'] for ride in rides) if rides else 0
+    raw_rides = query_db('SELECT * FROM rides WHERE user_id = ? ORDER BY date DESC', (user_id,))
+
+    rides = []
+    for r in raw_rides:
+        groups, flat = categorize_tags(r['tags'])
+        row = dict(r)
+        row['tag_groups'] = groups
+        row['tag_list'] = flat
+        rides.append(row)
+
+    total_rides = len(raw_rides)
+    total_distance = sum(ride['distance'] for ride in raw_rides) if raw_rides else 0
+    total_time = sum(ride['time'] for ride in raw_rides) if raw_rides else 0
     avg_distance = total_distance / total_rides if total_rides > 0 else 0
 
     return render_template('dashboard.html', rides=rides, total_rides=total_rides,
@@ -184,14 +228,21 @@ def user_profile(user_id):
     ''', (user_id,))
     
     # Public rides
-    rides = query_db('SELECT * FROM rides WHERE user_id = ? AND is_private = 0 ORDER BY date DESC LIMIT 10', (user_id,))
-    
+    raw_rides = query_db('SELECT * FROM rides WHERE user_id = ? AND is_private = 0 ORDER BY date DESC LIMIT 10', (user_id,))
+    rides = []
+    for r in raw_rides:
+        groups, flat = categorize_tags(r['tags'])
+        row = dict(r)
+        row['tag_groups'] = groups
+        row['tag_list'] = flat
+        rides.append(row)
+
     # Check if current user follows this user
     is_following = False
     if 'user_id' in session:
         is_following = query_db('SELECT id FROM follows WHERE follower_id = ? AND followed_id = ?', 
                                 (session['user_id'], user_id), one=True) is not None
-    
+
     return render_template('user_profile.html', user=user, total_rides=total_rides,
                            total_distance=total_distance, followers=followers, 
                            following=following, rides=rides, is_following=is_following)
@@ -895,7 +946,12 @@ def edit_ride(ride_id):
         custom = request.form.get('custom_tags','').strip()
         if custom:
             tags_list += [t.strip() for t in custom.split(',') if t.strip()]
+        
+        # Sort tags alphabetically (case-insensitive) for consistency
+        tags_list = [t.strip() for t in tags_list if t.strip()]
+        tags_list = sorted(dict.fromkeys(tags_list), key=lambda s: s.lower())  # keep order deterministic and remove duplicates
         tags = ','.join(tags_list) if tags_list else None
+        
         is_private = 1 if request.form.get('is_private') == 'on' else 0
 
         query_db('''
@@ -1188,7 +1244,12 @@ def add_ride():
         custom = request.form.get('custom_tags', '').strip()
         if custom:
             tags_list += [t.strip() for t in custom.split(',') if t.strip()]
+        
+        # Sort tags alphabetically (case-insensitive) for consistency
+        tags_list = [t.strip() for t in tags_list if t.strip()]
+        tags_list = sorted(dict.fromkeys(tags_list), key=lambda s: s.lower())  # keep order deterministic and remove duplicates
         tags = ','.join(tags_list) if tags_list else None
+        
         is_private = 1 if request.form.get('is_private') == 'on' else 0
 
         try:

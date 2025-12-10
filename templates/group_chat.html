@@ -6,32 +6,68 @@
   <title>{{ group['name'] }} - Group Chat</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
   <style>
-    .group-wrapper { display: flex; flex-direction: column; height: calc(100vh - 80px); max-width: 1000px; margin: 0 auto; }
-    .group-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1.5rem 2rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(102,126,234,0.2); margin-bottom: 1rem; display: flex; justify-content: flex-start; gap: 1rem; align-items: center; }
-    .back-btn { background: rgba(255,255,255,0.2); color: white; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 700; transition: all 0.3s ease; flex-shrink: 0; }
-    .back-btn:hover { background: rgba(255,255,255,0.3); transform: translateY(-2px); }
-    .group-info { display: flex; gap: 1.5rem; align-items: center; flex: 1; }
-    .group-avatar { width: 70px; height: 70px; border-radius: 50%; overflow: hidden; border: 3px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.15); flex-shrink: 0; }
-    .group-avatar img { width: 100%; height: 100%; object-fit: cover; }
-    .group-details h3 { margin: 0; font-size: 1.3rem; }
-    .group-details p { margin: 0.25rem 0 0 0; opacity: 0.9; font-size: 0.95rem; }
-    .group-actions { display: flex; gap: 0.75rem; margin-left: auto; }
-    .group-actions a { background: rgba(255,255,255,0.2); color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 700; transition: all 0.3s ease; }
-    .group-actions a:hover { background: rgba(255,255,255,0.3); transform: translateY(-2px); }
-    .messages-wrapper { flex: 1; overflow-y: auto; background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 1rem; display: flex; flex-direction: column; }
-    .message { max-width: 70%; padding: 0.75rem 1rem; border-radius: 12px; margin-bottom: 0.75rem; word-wrap: break-word; }
-    .message.sent { align-self: flex-end; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-    .message.received { align-self: flex-start; background: #f0f2f5; color: #333; }
-    .message-meta { font-weight: 700; margin-bottom: 0.25rem; font-size: 0.9rem; }
-    .message-time { font-size: 0.8rem; color: #999; margin-top: 0.5rem; }
-    .message.sent .message-time { color: rgba(255,255,255,0.7); }
-    .empty-chat { color: #999; text-align: center; padding: 2rem; }
-    .message-form { display: flex; gap: 0.75rem; }
-    .message-form input { flex: 1; padding: 0.75rem 1rem; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem; transition: all 0.3s ease; }
-    .message-form input:focus { border-color: #667eea; outline: none; box-shadow: 0 0 0 3px rgba(102,126,234,0.1); }
-    .message-form button { padding: 0.75rem 1.5rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; transition: all 0.3s ease; }
-    .message-form button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102,126,234,0.3); }
-    .message.system { align-self: center; background: transparent; color: #999; font-size: 0.85rem; max-width: 100%; padding: 0.5rem; margin: 1rem 0; opacity: 0.7; }
+  .chat-wrapper, .group-wrapper { display: flex; flex-direction: column; height: calc(100vh - 80px); max-width: 1000px; margin: 0 auto; }
+  .chat-header, .group-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: var(--on-primary, #fff);
+    padding: 1.5rem 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(102,126,234,0.12);
+    margin-bottom: 1rem;
+    display: flex; justify-content: flex-start; gap: 1rem; align-items: center;
+  }
+  .back-btn {
+    background: rgba(255,255,255,0.12);
+    color: var(--on-primary, #fff);
+    padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 700;
+    transition: all 0.18s ease; flex-shrink:0;
+  }
+  .back-btn:hover { transform: translateY(-2px); }
+
+  .chat-info, .group-info { display:flex; gap:1.5rem; align-items:center; flex:1; }
+  .user-avatar, .group-avatar { width:70px; height:70px; border-radius:50%; overflow:hidden; border:3px solid rgba(255,255,255,0.12); box-shadow:0 4px 12px rgba(0,0,0,0.08); flex-shrink:0; }
+  .user-avatar img, .group-avatar img { width:100%; height:100%; object-fit:cover; display:block; }
+
+  .messages-wrapper {
+    flex: 1; overflow-y: auto;
+    background: var(--panel-bg, #fff);
+    color: var(--text, #111);
+    border-radius: 12px; padding: 1.25rem; box-shadow: var(--shadow-1, 0 4px 12px rgba(0,0,0,0.04)); margin-bottom: 1rem;
+    display:flex; flex-direction:column;
+  }
+
+  .message { max-width: 70%; padding: 0.75rem 1rem; border-radius: 12px; margin-bottom: 0.6rem; word-wrap:break-word; color: var(--text); }
+  .message.sent { align-self: flex-end; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: var(--on-primary, #fff); }
+  .message.received { align-self: flex-start; background: var(--muted-bg, #f0f2f5); color: var(--text, #111); }
+
+  .message-meta { font-weight:700; margin-bottom:0.25rem; font-size:0.9rem; color: var(--text); }
+  .message-time { font-size:0.8rem; color: var(--muted, #8c8c8c); margin-top:0.35rem; }
+  .message.sent .message-time { color: rgba(255,255,255,0.78); }
+
+  .message.system { align-self:center; background:transparent; color:var(--muted); font-size:0.9rem; padding:0.25rem 0.5rem; margin:0.6rem 0; max-width:100%; opacity:0.85; }
+
+  .message-form { display:flex; gap:0.75rem; }
+  .message-form input {
+    flex:1; padding:0.75rem 1rem; border-radius:8px; font-size:1rem;
+    background: var(--input-bg, rgba(0,0,0,0.03));
+    color: var(--text, #111);
+    border: 2px solid var(--muted-border, rgba(0,0,0,0.08));
+    transition: all 0.15s ease;
+  }
+  .message-form input:focus { outline:none; border-color: var(--primary-500, #667eea); box-shadow: 0 0 0 3px rgba(102,126,234,0.06); }
+  .message-form button {
+    padding:0.75rem 1.3rem; border-radius:8px; border:none; cursor:pointer;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:var(--on-primary, #fff); font-weight:700;
+  }
+  .empty-chat { color: var(--muted); text-align:center; padding: 2rem; }
+
+  /* Dark-mode overrides can be in your global stylesheet; these ensure fallback if not present */
+  body.dark .messages-wrapper { background: var(--panel-bg, #111); }
+  body.dark .message.received { background: var(--muted-bg, #1e1e1e); }
+  body.dark .message { color: var(--text, #eee); }
+  body.dark .message-meta { color: var(--text, #eee); }
+  body.dark .message-time { color: var(--muted, #bdbdbd); }
+  body.dark .message-form input { background: var(--input-bg, rgba(255,255,255,0.02)); color: var(--text, #eee); border-color: var(--muted-border, rgba(255,255,255,0.06)); }
   </style>
 </head>
 <body>
@@ -46,7 +82,7 @@
             {% if group['profile_pic'] %}
               <img src="{{ group['profile_pic'] }}" alt="{{ group['name'] }}">
             {% else %}
-              <div style="width:100%; height:100%; background: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 2rem; color: #667eea;">{{ group['name'][0].upper() }}</div>
+              <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:2rem; background: linear-gradient(135deg,var(--primary-500),var(--primary-600)); color: var(--on-primary, #fff);">{{ group['name'][0].upper() }}</div>
             {% endif %}
           </div>
           <div class="group-details">

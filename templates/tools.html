@@ -20,15 +20,15 @@
       {% endif %}
     {% endwith %}
 
-    <h2 style="margin-bottom:1rem; color:#222;">🧰 Tools</h2>
+    <h2 style="margin-bottom:1rem; color:var(--text);">🧰 Tools</h2>
 
     <div class="leaderboard-tabs" style="margin-bottom:1.5rem;">
-      <button class="tab-button" data-tab="maint" onclick="showTab('maint', this)">Maintenance Reminders</button>
+      <button class="tab-button active" data-tab="maint" onclick="showTab('maint', this)">Maintenance Reminders</button>
       <button class="tab-button" data-tab="weather" onclick="showTab('weather', this)">Weather Alerts</button>
       <button class="tab-button" data-tab="emergency" onclick="showTab('emergency', this)">Emergency Info</button>
     </div>
 
-    <div id="maint" class="leaderboard-table" style="display:none;">
+    <div id="maint" class="leaderboard-table" style="display:block;">
       <h3>Your Maintenance</h3>
       <form method="POST" style="margin-bottom:1rem;">
         <input type="hidden" name="action" value="add_maintenance">
@@ -49,25 +49,21 @@
           <input name="notes" placeholder="Notes (optional)">
         </div>
         <div class="form-group">
-          <button class="btn" type="submit">Add Reminder</button>
+          <button class="post-btn" type="submit">Add Reminder</button>
         </div>
       </form>
 
       {% if maintenance %}
-        <table style="width:100%;">
-          <thead><tr><th>Item</th><th>Due</th><th>Last</th><th>Notes</th><th></th></tr></thead>
-          <tbody>
-            {% for m in maintenance %}
-              <tr>
-                <td>{{ m['item'] }}</td>
-                <td>{{ m['due_date'] or '-' }}</td>
-                <td>{{ m['last_changed'] or '-' }}</td>
-                <td>{{ m['notes'] or '-' }}</td>
-                <td><a class="btn btn-secondary" href="?delete_maint={{ m['id'] }}" onclick="return confirm('Delete?')">Delete</a></td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+        <div>
+        {% for m in maintenance %}
+          <div class="stat-card" style="margin-bottom:10px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div><strong>{{ m['item'] }}</strong><div style="color:var(--muted);font-size:0.95rem;">Due: {{ m['due_date'] or '-' }}</div></div>
+              <div><a class="btn btn-secondary" href="?delete_maint={{ m['id'] }}" onclick="return confirm('Delete?')">Delete</a></div>
+            </div>
+          </div>
+        {% endfor %}
+        </div>
       {% else %}
         <p class="empty-message">No maintenance reminders yet.</p>
       {% endif %}
@@ -75,27 +71,17 @@
 
     <div id="weather" class="leaderboard-table" style="display:none;">
       <h3>Weather Alerts</h3>
-      <form method="POST">
-        <input type="hidden" name="action" value="weather">
+      <form id="weatherForm" onsubmit="return false;">
         <div class="form-group">
-          <label>City</label>
-          <input name="city" placeholder="Enter city (e.g. London)" required>
+          <label for="weatherCity">City</label>
+          <input id="weatherCity" name="city" placeholder="Enter city (e.g. London)" required>
         </div>
         <div class="form-group">
-          <button class="btn" type="submit">Get Weather</button>
+          <button id="weatherBtn" class="post-btn" type="submit">Get Weather</button>
         </div>
       </form>
 
-      {% if weather %}
-        <div class="stat-card" style="text-align:left;">
-          <h3>{{ weather.city }}</h3>
-          <p>Temp: <strong>{{ weather.temp }}°C</strong></p>
-          <p>Condition: <strong>{{ weather.desc }}</strong></p>
-          <p>Wind: <strong>{{ weather.wind }} m/s</strong></p>
-        </div>
-      {% else %}
-        <p class="empty-message">Enter city and click Get Weather. (Requires OPENWEATHER_API_KEY)</p>
-      {% endif %}
+      <div id="weatherResult" style="margin-top:12px;"></div>
     </div>
 
     <div id="emergency" class="leaderboard-table" style="display:none;">
@@ -111,7 +97,7 @@
           <input name="em_phone" value="{{ user['emergency_phone'] or '' }}" placeholder="+1234567890">
         </div>
         <div class="form-group">
-          <button class="btn" type="submit">Save Emergency Info</button>
+          <button class="post-btn" type="submit">Save Emergency Info</button>
         </div>
       </form>
 
@@ -129,11 +115,45 @@
       if (btn) btn.classList.add('active');
     }
 
-    // Ensure maintenance tab is shown by default
-    document.addEventListener('DOMContentLoaded', function () {
-      const btn = document.querySelector('.tab-button[data-tab="maint"]');
-      showTab('maint', btn);
-    });
+    (function(){
+      const apiKey = 'e0bdcc406de83a62a78c9f0a05072613';
+      const form = document.getElementById('weatherForm');
+      const cityInput = document.getElementById('weatherCity');
+      const result = document.getElementById('weatherResult');
+
+      async function getWeather(city) {
+        result.innerHTML = '<div class="flash-message">Fetching weather…</div>';
+        try {
+          const r = await fetch('https://api.openweathermap.org/data/2.5/weather?q=' + encodeURIComponent(city) + '&units=metric&appid=' + apiKey);
+          if (!r.ok) throw new Error('City not found');
+          const data = await r.json();
+          const html = `
+            <div class="stat-card">
+              <h4>${data.name}, ${data.sys.country}</h4>
+              <p>Temp: <strong>${data.main.temp}°C</strong></p>
+              <p>Condition: <strong>${data.weather[0].description}</strong></p>
+              <p>Wind: <strong>${data.wind.speed} m/s</strong></p>
+            </div>
+          `;
+          result.innerHTML = html;
+          const cond = data.weather[0].main.toLowerCase();
+          if (cond.includes('storm') || cond.includes('thunder') || cond.includes('tornado') || cond.includes('hurricane')){
+            alert('Severe weather alert: ' + data.weather[0].description);
+          }
+        } catch (err) {
+          result.innerHTML = '<div class="flash-message error">Weather lookup failed: ' + err.message + '</div>';
+        }
+      }
+
+      if (form) {
+        form.addEventListener('submit', function(e){
+          e.preventDefault();
+          const city = cityInput.value.trim();
+          if (!city) { result.innerHTML = '<div class="flash-message error">Please enter a city.</div>'; return; }
+          getWeather(city);
+        });
+      }
+    })();
   </script>
 </body>
 </html>

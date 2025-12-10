@@ -79,6 +79,7 @@
       <h3>🏍️ Recent Public Rides ({{ rides|length }})</h3>
       <div style="margin-top:12px;">
         {% if rides %}
+          <div class="ride-list">
           {% for ride in rides %}
             <div class="ride-card-public">
               <div class="ride-date-public">📅 {{ ride['date'] }}</div>
@@ -111,6 +112,7 @@
               </div>
             </div>
           {% endfor %}
+          </div>
         {% else %}
           <div class="empty-state">No public rides yet.</div>
         {% endif %}

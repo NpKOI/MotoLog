@@ -83,14 +83,23 @@
                   </div>
                 </div>
 
-                {% if ride['tags'] %}
+                {% if ride.tag_list %}
                   <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
-                    {% for tag in (ride['tags'] or '').split(',') %}
-                      {% set t = tag.strip() %}
-                      <div style="background: color-mix(in srgb, var(--primary-500) 6%, transparent); color:var(--primary-600); padding:6px 8px; border-radius:8px; font-weight:700; font-size:0.85rem;">{{ t }}</div>
+                    {% for tag in ride.tag_list %}
+                      <div style="background: color-mix(in srgb, var(--primary-500) 6%, transparent); color:var(--primary-600); padding:6px 8px; border-radius:8px; font-weight:700; font-size:0.85rem;">{{ tag }}</div>
                     {% endfor %}
                   </div>
                 {% endif %}
+                {% set groups = ride.tag_groups %}
+                {% for cat in ['weather', 'terrain', 'style', 'other'] %}
+                  {% if groups[cat] %}
+                    <div class="tag-group" data-tag-category="{{ cat }}" style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+                      {% for tag in groups[cat] %}
+                        <div class="tag-badge">{{ tag }}</div>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+                {% endfor %}
               </div>
 
               <div style="display:flex; flex-direction:column; gap:8px; margin-left:12px;">

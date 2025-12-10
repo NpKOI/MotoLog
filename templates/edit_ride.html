@@ -47,12 +47,12 @@
           <input type="number" id="time" name="time" step="0.1" value="{{ ride['time'] }}" required>
         </div>
 
-        <!-- Tags UI - same styling/structure as add_ride -->
+        <!-- Tags UI -->
         <div class="tags-container">
-          <label style="font-weight: 600; color: #333; display: block; margin-bottom: 1rem;">🏷️ Ride Tags</label>
+          <label class="section-label">🏷️ Ride Tags</label>
 
-          <div style="margin-bottom: 1rem;">
-            <h4 style="color: #666; font-size: 0.9rem; margin-bottom: 0.75rem; text-transform: uppercase;">Weather</h4>
+          <div class="tag-section">
+            <h4 class="tag-section-title">Weather</h4>
             <div class="tags-grid">
               <div>
                 <input type="checkbox" id="tag_sunny" class="tag-checkbox" name="tag" value="sunny" {% if 'sunny' in existing_tags %}checked{% endif %}>
@@ -73,8 +73,8 @@
             </div>
           </div>
 
-          <div style="margin-bottom: 1rem;">
-            <h4 style="color: #666; font-size: 0.9rem; margin-bottom: 0.75rem; text-transform: uppercase;">Terrain</h4>
+          <div class="tag-section">
+            <h4 class="tag-section-title">Terrain</h4>
             <div class="tags-grid">
               <div>
                 <input type="checkbox" id="tag_gravel" class="tag-checkbox" name="tag" value="gravel" {% if 'gravel' in existing_tags %}checked{% endif %}>
@@ -95,8 +95,8 @@
             </div>
           </div>
 
-          <div style="margin-bottom: 1rem;">
-            <h4 style="color: #666; font-size: 0.9rem; margin-bottom: 0.75rem; text-transform: uppercase;">Purpose</h4>
+          <div class="tag-section">
+            <h4 class="tag-section-title">Purpose / Style</h4>
             <div class="tags-grid">
               <div>
                 <input type="checkbox" id="tag_commute" class="tag-checkbox" name="tag" value="commute" {% if 'commute' in existing_tags %}checked{% endif %}>
@@ -117,8 +117,8 @@
             </div>
           </div>
 
-          <div>
-            <label for="custom_tags" style="display: block; margin-bottom: 0.5rem; color: #666; font-weight: 600;">Custom Tags</label>
+          <div class="custom-tags">
+            <label for="custom_tags" class="field-label">Custom Tags</label>
             <input type="text" id="custom_tags" name="custom_tags" class="custom-tags-input" placeholder="Custom tags, comma separated" value="{{ (ride['tags'] or '') }}">
             <div class="tags-note">💡 Separate multiple custom tags with commas</div>
           </div>
