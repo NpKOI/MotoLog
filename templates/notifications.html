@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Notifications — MotoLog</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+  <div class="dashboard-container">
+    {% include '_navbar.html' %}
+
+    <main style="max-width:800px; margin:32px auto; padding:0 16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+        <h1 style="margin:0;">🔔 Notifications</h1>
+        {% if notifications %}
+          <button onclick="markAllRead()" class="btn btn-secondary" style="font-size:0.95rem;">Mark all as read</button>
+        {% endif %}
+      </div>
+
+      {% if notifications %}
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          {% for notif in notifications %}
+            <div class="notification-item" style="background:var(--card-bg); padding:16px; border-radius:12px; box-shadow:var(--shadow-1); border-left:4px solid var(--primary-600); display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+              <div style="flex:1;">
+                {% if notif['type'] == 'follow' %}
+                  <div style="font-weight:600; margin-bottom:4px;">
+                    👤 <a href="/profile/{{ notif['actor_id'] }}" style="color:var(--primary-600); text-decoration:none;">{{ notif['actor_username'] }}</a> started following you
+                  </div>
+                {% elif notif['type'] == 'event_created' %}
+                  <div style="font-weight:600; margin-bottom:4px;">
+                    📍 New event in your city: <a href="/events/{{ notif['event_id'] }}" style="color:var(--primary-600); text-decoration:none;">{{ notif['event_title'] }}</a>
+                  </div>
+                {% elif notif['type'] == 'event_joined' %}
+                  <div style="font-weight:600; margin-bottom:4px;">
+                    🏍️ <a href="/profile/{{ notif['actor_id'] }}" style="color:var(--primary-600); text-decoration:none;">{{ notif['actor_username'] }}</a> joined <a href="/events/{{ notif['event_id'] }}" style="color:var(--primary-600); text-decoration:none;">{{ notif['event_title'] }}</a>
+                  </div>
+                {% else %}
+                  <div style="font-weight:600; margin-bottom:4px;">{{ notif['message'] }}</div>
+                {% endif %}
+                <div style="color:var(--muted); font-size:0.85rem;">
+                  {{ notif['created_at'][:10] }} at {{ notif['created_at'][11:16] }}
+                </div>
+              </div>
+              <button onclick="markRead({{ notif['id'] }})" class="btn btn-secondary" style="padding:8px 12px; font-size:0.85rem; white-space:nowrap;">✓</button>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div style="text-align:center; padding:48px 24px; background:var(--card-bg); border-radius:12px; box-shadow:var(--shadow-1);">
+          <div style="font-size:3rem; margin-bottom:12px;">📭</div>
+          <p style="color:var(--muted); font-size:1.05rem;">No new notifications</p>
+          <p style="color:var(--muted); font-size:0.95rem; margin-top:8px;">Stay tuned for updates from the MotoLog community</p>
+        </div>
+      {% endif %}
+    </main>
+  </div>
+
+  <script>
+    // Initialize theme
+    (function initTheme(){
+      const saved = localStorage.getItem('moto_theme');
+      const isDark = saved === 'dark';
+      if (isDark) {
+        document.body.classList.add('dark');
+      } else {
+        document.body.classList.remove('dark');
+      }
+    })();
+
+    function markRead(notifId) {
+      fetch(`/api/notifications/mark-read/${notifId}`, { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) location.reload();
+        });
+    }
+
+    function markAllRead() {
+      fetch('/api/notifications/mark-all-read', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) location.reload();
+        });
+    }
+  </script>
+</body>
+</html>

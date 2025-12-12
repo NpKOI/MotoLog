@@ -6,9 +6,11 @@
   <title>{{ bike['name'] }} - Maintenance</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
   <style>
-    .maint-card { background:white; padding:1rem; border-radius:8px; margin-bottom:1rem; box-shadow:0 4px 12px rgba(0,0,0,0.05); }
-    .maint-form { display:flex; gap:0.5rem; margin-bottom:1rem; }
-    .maint-form input, .maint-form textarea { padding:8px; border:1px solid #e0e0e0; border-radius:6px; }
+    .maint-card { background:var(--card-bg); color:var(--text); padding:1rem; border-radius:8px; margin-bottom:1rem; box-shadow:var(--shadow-1); }
+    .maint-card div { color:var(--text); }
+    .maint-form { display:flex; gap:0.5rem; margin-bottom:1rem; flex-wrap:wrap; }
+    .maint-form input, .maint-form textarea { padding:8px; border:1px solid var(--n-400); border-radius:6px; background:var(--card-bg); color:var(--text); }
+    .maint-form input::placeholder, .maint-form textarea::placeholder { color:var(--muted); }
   </style>
 </head>
 <body>

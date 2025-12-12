@@ -28,8 +28,8 @@
     .event-status { font-size: 0.75rem; font-weight: 700; padding: 0.3rem 0.6rem; border-radius: 6px; background: color-mix(in srgb, var(--primary-500) 15%, transparent); color: var(--primary-600); }
     .event-status.full { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
     .event-status.ongoing { background: color-mix(in srgb, #10b981 15%, transparent); color: #10b981; }
-    .btn-create { background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 0.9rem 1.8rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; }
-    .btn-create:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(16,185,129,0.3); }
+    .btn-create { background: transparent; color: var(--text); padding: 0.7rem 1rem; border-radius: 8px; border: 1px solid color-mix(in srgb,var(--muted) 18%, transparent); font-weight: 700; cursor: pointer; transition: all 0.12s; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; }
+    .btn-create:hover { transform: translateY(-2px); box-shadow: var(--shadow-1); }
     .no-events { text-align: center; padding: 3rem 1rem; color: var(--muted); }
     .no-events h3 { color: var(--text); margin-bottom: 0.5rem; }
   </style>
@@ -104,35 +104,55 @@
     {% if events %}
       <div class="events-grid">
         {% for event in events %}
-          <a href="{{ url_for('event_detail', event_id=event['id']) }}" style="text-decoration: none; color: inherit;">
-            <div class="event-card">
-              {% if event['cover_image'] %}
+          <div class="event-card">
+            {% if event['cover_image'] %}
+              <a href="{{ url_for('event_detail', event_id=event['id']) }}" style="text-decoration: none; color: inherit; display:block;">
                 <img src="{{ event['cover_image'] }}" alt="{{ event['title'] }}" class="event-card-image">
-              {% else %}
+              </a>
+            {% else %}
+              <a href="{{ url_for('event_detail', event_id=event['id']) }}" style="text-decoration: none; color: inherit; display:block;">
                 <div class="event-card-image">{{ event['category_label'][0] }}</div>
-              {% endif %}
-              
-              <div class="event-card-content">
+              </a>
+            {% endif %}
+            
+            <div class="event-card-content">
+              <a href="{{ url_for('event_detail', event_id=event['id']) }}" style="text-decoration: none; color: inherit;">
                 <span class="event-card-category">{{ event['category_label'].split(' ', 1)[1] if ' ' in event['category_label'] else event['category_label'] }}</span>
                 <h3 class="event-card-title">{{ event['title'][:40] }}{% if event['title']|length > 40 %}...{% endif %}</h3>
                 <p class="event-card-location">📍 {{ event['location_name'][:35] }}{% if event['location_name']|length > 35 %}...{% endif %}</p>
                 <p class="event-card-datetime">📅 {{ event['event_date'] }}</p>
-                
-                <div class="event-card-footer">
-                  <span class="event-card-participants">
-                    👥 {{ event['participant_count'] }}{% if event['max_participants'] %}/{{ event['max_participants'] }}{% endif %}
-                  </span>
-                  {% if event['is_full'] %}
-                    <span class="event-status full">FULL</span>
-                  {% elif event['status'] == 'ongoing' %}
-                    <span class="event-status ongoing">LIVE</span>
-                  {% else %}
-                    <span class="event-status">{{ event['status_label'].split(' ', 1)[1] if ' ' in event['status_label'] else event['status_label'] }}</span>
-                  {% endif %}
-                </div>
+              </a>
+
+              <div class="event-card-footer">
+                <span class="event-card-participants">
+                  👥 {{ event['participant_count'] }}{% if event['max_participants'] %}/{{ event['max_participants'] }}{% endif %}
+                </span>
+                {% if event['is_full'] %}
+                  <span class="event-status full">FULL</span>
+                {% elif event['status'] == 'ongoing' %}
+                  <span class="event-status ongoing">LIVE</span>
+                {% else %}
+                  <span class="event-status">{{ event['status_label'].split(' ', 1)[1] if ' ' in event['status_label'] else event['status_label'] }}</span>
+                {% endif %}
               </div>
+
+              <!-- Quick join/leave/manage actions under each card -->
+              <div style="padding-top:0.8rem; display:flex; gap:0.5rem;">
+                {% if event['is_creator'] %}
+                  <a href="{{ url_for('edit_event', event_id=event['id']) }}" style="flex:1; display:inline-flex; align-items:center; justify-content:center; text-decoration:none; background: transparent; border: 1px solid var(--muted); color: var(--text); padding: 0.6rem; border-radius: 6px; font-weight: 700;">⚙️ Manage</a>
+                {% elif event['is_participant'] %}
+                  <form method="POST" action="{{ url_for('leave_event', event_id=event['id']) }}" style="flex:1; margin:0;">
+                    <button type="submit" style="width:100%; background: transparent; border: 1px solid var(--primary-600); color: var(--primary-600); padding: 0.6rem; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.9rem;">❌ Leave</button>
+                  </form>
+                {% elif event['can_join'] %}
+                  <form method="POST" action="{{ url_for('join_event', event_id=event['id']) }}" style="flex:1; margin:0;">
+                    <button type="submit" style="width:100%; background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 0.6rem; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.9rem;">✅ Join</button>
+                  </form>
+                {% endif %}
+              </div>
+
             </div>
-          </a>
+          </div>
         {% endfor %}
       </div>
     {% else %}
@@ -142,20 +162,7 @@
       </div>
     {% endif %}
 
-    <!-- Join/Leave Buttons (moved outside the loop for better structure) -->
-    {% for event in events %}
-      <div style="padding: 1rem; border-top: 1px solid color-mix(in srgb, var(--muted) 10%, transparent); display: flex; gap: 0.5rem;">
-        {% if not event['is_participant'] and event['can_join'] %}
-          <form method="POST" action="{{ url_for('join_event', event_id=event['id']) }}" style="flex: 1;">
-            <button type="submit" style="width: 100%; background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 0.6rem; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.9rem;">✅ Join</button>
-          </form>
-        {% elif event['is_participant'] %}
-          <form method="POST" action="{{ url_for('leave_event', event_id=event['id']) }}" style="flex: 1;">
-            <button type="submit" style="width: 100%; background: transparent; border: 1px solid var(--primary-600); color: var(--primary-600); padding: 0.6rem; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.9rem;">❌ Leave</button>
-          </form>
-        {% endif %}
-      </div>
-    {% endfor %}
+    {# join/leave buttons are now per-card; removed bottom loop #}
 
   </div>
 </body>

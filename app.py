@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import sqlite3
@@ -41,14 +41,37 @@ EVENT_STATUSES = {
 }
 
 def query_db(query, args=(), one=False):
-    conn = sqlite3.connect('moto_log.db')
-    conn.row_factory = sqlite3.Row
-    cur = conn.cursor()
-    cur.execute(query, args)
-    rv = cur.fetchall()
-    conn.commit()
-    conn.close()
-    return (rv[0] if rv else None) if one else rv
+    # Use WAL mode for better concurrency, increase timeout, enable foreign keys, and retry on lock
+    import time
+    max_retries = 3
+    retry_delay = 0.5
+    last_error = None
+    
+    for attempt in range(max_retries):
+        try:
+            conn = sqlite3.connect('moto_log.db', timeout=10.0)
+            conn.row_factory = sqlite3.Row
+            # Enable WAL mode for better concurrency
+            try:
+                conn.execute('PRAGMA journal_mode=WAL')
+                conn.execute('PRAGMA foreign_keys = ON')
+            except Exception:
+                pass
+            cur = conn.cursor()
+            cur.execute(query, args)
+            rv = cur.fetchall()
+            conn.commit()
+            conn.close()
+            return (rv[0] if rv else None) if one else rv
+        except sqlite3.OperationalError as e:
+            last_error = e
+            if attempt < max_retries - 1:
+                time.sleep(retry_delay)
+                retry_delay *= 2  # exponential backoff
+            else:
+                raise last_error
+        except Exception as e:
+            raise e
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.',1)[1].lower() in ALLOWED_EXT
@@ -84,6 +107,17 @@ def categorize_tags(tags_str):
 # Make query_db available in all templates
 app.jinja_env.globals.update(query_db=query_db)
 
+def create_notification(user_id, notif_type, actor_id=None, event_id=None, message=None):
+    """Create a notification for a user"""
+    try:
+        now = datetime.now().isoformat()
+        query_db('''
+            INSERT INTO notifications (user_id, type, actor_id, event_id, message, created_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (user_id, notif_type, actor_id, event_id, message, now))
+    except Exception as e:
+        print(f"Notification creation error: {e}")
+
 @app.route('/')
 def home():
     if 'user_id' in session:
@@ -97,12 +131,13 @@ def register():
         email = request.form['email']
         password = request.form['password']
         country = request.form['country']
+        city = request.form.get('city', '')
         hashed_password = generate_password_hash(password)
 
         try:
             query_db(
-                'INSERT INTO users (username, email, password, country) VALUES (?, ?, ?, ?)',
-                (username, email, hashed_password, country)
+                'INSERT INTO users (username, email, password, country, city) VALUES (?, ?, ?, ?, ?)',
+                (username, email, hashed_password, country, city)
             )
             flash('Account created successfully! Please log in.', 'success')
             return redirect(url_for('login'))
@@ -127,6 +162,7 @@ def login():
             session['email'] = user['email']
             session['username'] = user['username']
             session['country'] = user['country']
+            session['city'] = user['city']
             flash('Login successful!', 'success')
             return redirect(url_for('dashboard'))
 
@@ -851,6 +887,63 @@ def logout():
     flash('You have been logged out.', 'success')
     return redirect(url_for('login'))
 
+@app.route('/notifications')
+def get_notifications():
+    """Get unread notifications for the current user"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    user_id = session['user_id']
+    notifications = query_db('''
+        SELECT n.*, u.username as actor_username, u.id as actor_id,
+               e.title as event_title, e.id as event_id
+        FROM notifications n
+        LEFT JOIN users u ON n.actor_id = u.id
+        LEFT JOIN events e ON n.event_id = e.id
+        WHERE n.user_id = ? AND n.is_read = 0
+        ORDER BY n.created_at DESC
+        LIMIT 20
+    ''', (user_id,))
+    
+    return render_template('notifications.html', notifications=notifications)
+
+@app.route('/api/notifications/count')
+def notification_count():
+    """Get unread notification count (JSON)"""
+    if 'user_id' not in session:
+        return jsonify({'count': 0})
+    
+    user_id = session['user_id']
+    result = query_db('SELECT COUNT(*) as cnt FROM notifications WHERE user_id = ? AND is_read = 0', 
+                      (user_id,), one=True)
+    return jsonify({'count': result['cnt']})
+
+@app.route('/api/notifications/mark-read/<int:notif_id>', methods=['POST'])
+def mark_notification_read(notif_id):
+    """Mark a notification as read"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    user_id = session['user_id']
+    # Verify the notification belongs to this user
+    notif = query_db('SELECT * FROM notifications WHERE id = ? AND user_id = ?', 
+                     (notif_id, user_id), one=True)
+    if not notif:
+        return jsonify({'error': 'Notification not found'}), 404
+    
+    query_db('UPDATE notifications SET is_read = 1 WHERE id = ?', (notif_id,))
+    return jsonify({'success': True})
+
+@app.route('/api/notifications/mark-all-read', methods=['POST'])
+def mark_all_read():
+    """Mark all notifications as read"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    user_id = session['user_id']
+    query_db('UPDATE notifications SET is_read = 1 WHERE user_id = ?', (user_id,))
+    return jsonify({'success': True})
+
 @app.route('/tools', methods=['GET', 'POST'])
 def tools():
     if 'user_id' not in session:
@@ -1171,8 +1264,16 @@ def follow_toggle(target_id):
         query_db('INSERT INTO follows (follower_id, followed_id, created_at) VALUES (?, ?, datetime("now"))', (uid, target_id))
         flash('Now following user.', 'success')
 
-    # If route was called by a POST form, return to referrer; if used by GET link, go to the target profile
-    return redirect(request.referrer or url_for('user_profile', user_id=target_id))
+        # Create follow notification
+        create_notification(
+            user_id=target_id,
+            notif_type='follow',
+            actor_id=uid,
+            message=f"New follower"
+        )
+
+        # If route was called by a POST form, return to referrer; if used by GET link, go to the target profile
+        return redirect(request.referrer or url_for('user_profile', user_id=target_id))
 
 @app.route('/profile/edit', methods=['GET', 'POST'])
 def profile_edit():
@@ -1181,9 +1282,11 @@ def profile_edit():
     user_id = session['user_id']
     
     if request.method == 'POST':
-        # allow username change + bio + profile picture
+        # allow username change + bio + profile picture + country + city
         new_username = request.form.get('username','').strip()
         bio = request.form.get('bio','').strip()
+        country = request.form.get('country','').strip()
+        city = request.form.get('city','').strip()
 
         # check username availability (allow same if unchanged)
         if new_username:
@@ -1206,6 +1309,15 @@ def profile_edit():
 
         if bio is not None:
             query_db('UPDATE users SET bio = ? WHERE id = ?', (bio, user_id))
+
+        # Update country and city
+        if country:
+            query_db('UPDATE users SET country = ? WHERE id = ?', (country, user_id))
+            session['country'] = country
+        
+        if city:
+            query_db('UPDATE users SET city = ? WHERE id = ?', (city, user_id))
+            session['city'] = city
 
         flash('Profile updated.', 'success')
         return redirect(url_for('profile'))
@@ -1421,12 +1533,18 @@ def events_browse():
     if category and category in EVENT_CATEGORIES:
         query += ' AND e.category = ?'
         args.append(category)
+
+    # Filter by city
+    city_filter = request.args.get('city', '').strip()
+    if city_filter:
+        query += ' AND e.city = ?'
+        args.append(city_filter)
     
-    # Search by title or description
+    # Search by title, description, location_name or city
     if search:
-        query += ' AND (e.title LIKE ? OR e.description LIKE ?)'
+        query += ' AND (e.title LIKE ? OR e.description LIKE ? OR e.location_name LIKE ? OR e.city LIKE ?)'
         search_pattern = f'%{search}%'
-        args.extend([search_pattern, search_pattern])
+        args.extend([search_pattern, search_pattern, search_pattern, search_pattern])
     
     query += ' GROUP BY e.id'
     
@@ -1440,6 +1558,10 @@ def events_browse():
         query += ' ORDER BY e.event_date ASC'
     
     events_rows = query_db(query, args)
+
+    # Build list of available cities for the city filter dropdown
+    cities_rows = query_db("SELECT DISTINCT city FROM events WHERE city IS NOT NULL AND city != '' ORDER BY city ASC")
+    cities = [r['city'] for r in cities_rows]
     
     # Convert each sqlite3.Row to a mutable dict and enrich with computed fields
     events = []
@@ -1458,10 +1580,14 @@ def events_browse():
             one=True
         ) is not None
 
+        is_creator = (event.get('creator_id') == current_uid)
+
         event['is_participant'] = is_participant
+        event['is_creator'] = is_creator
         event['can_join'] = (
             event.get('status') in ('upcoming', 'ongoing') and
             not is_participant and
+            not is_creator and
             (event.get('max_participants') is None or event['participant_count'] < (event.get('max_participants') or 0))
         )
         event['status_label'] = EVENT_STATUSES.get(event.get('status'), event.get('status'))
@@ -1473,7 +1599,9 @@ def events_browse():
                            categories=EVENT_CATEGORIES,
                            current_filter=category,
                            search_query=search,
-                           sort_by=sort_by)
+                           sort_by=sort_by,
+                           cities=cities,
+                           city_filter=city_filter)
 
 @app.route('/events/create', methods=['GET', 'POST'])
 def create_event():
@@ -1546,16 +1674,88 @@ def create_event():
             cover_image = f"/static/{rel}"
         
         now = datetime.now().isoformat()
-        query_db('''
-            INSERT INTO events
-            (creator_id, title, description, event_date, location_name, city, latitude, longitude, category, max_participants, cover_image, is_local, status, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            session['user_id'],
-            title, description, event_date, location_name, city,
-            lat, lon, category, max_part, cover_image,
-            1 if is_local else 0, 'upcoming', now, now
-        ))
+        try:
+            query_db('''
+                INSERT INTO events
+                (creator_id, title, description, event_date, location_name, city, latitude, longitude, category, max_participants, cover_image, is_local, status, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                session['user_id'],
+                title, description, event_date, location_name, city,
+                lat, lon, category, max_part, cover_image,
+                1 if is_local else 0, 'upcoming', now, now
+            ))
+        except sqlite3.IntegrityError as e:
+            # Temporary fallback: if DB still enforces NOT NULL on latitude/longitude,
+            # retry inserting with zeros to avoid crashing. Recommended: run migration migrate_make_coords_nullable.py
+            if 'latitude' in str(e) or 'longitude' in str(e):
+                flash('Database requires coordinates — inserting placeholder coords. Please run the migration to allow optional coordinates.', 'warning')
+                lat = 0.0
+                lon = 0.0
+                query_db('''
+                    INSERT INTO events
+                    (creator_id, title, description, event_date, location_name, city, latitude, longitude, category, max_participants, cover_image, is_local, status, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (
+                    session['user_id'],
+                    title, description, event_date, location_name, city,
+                    lat, lon, category, max_part, cover_image,
+                    1 if is_local else 0, 'upcoming', now, now
+                ))
+            else:
+                raise
+        
+        # Notify users in the same city about the new event
+        if is_local:
+            try:
+                # Get the event ID that was just created
+                new_event = query_db(
+                    'SELECT id FROM events WHERE creator_id = ? AND title = ? ORDER BY created_at DESC LIMIT 1',
+                    (session['user_id'], title), one=True
+                )
+                if new_event:
+                    event_id = new_event['id']
+                    # Get all users in the same city (except the creator)
+                    city_users = query_db(
+                        'SELECT id FROM users WHERE city = ? AND id != ? LIMIT 100',
+                        (city, session['user_id'])
+                    )
+                    # Create notifications for each user
+                    for user_row in city_users:
+                        create_notification(
+                            user_id=user_row['id'],
+                            notif_type='event_created',
+                            actor_id=session['user_id'],
+                            event_id=event_id,
+                            message=f"New event in {city}: {title}"
+                        )
+            except Exception as e:
+                print(f"Error creating event notifications: {e}")
+        else:
+            # Notify all users when a global event is created
+            try:
+                new_event = query_db(
+                    'SELECT id FROM events WHERE creator_id = ? AND title = ? ORDER BY created_at DESC LIMIT 1',
+                    (session['user_id'], title), one=True
+                )
+                if new_event:
+                    event_id = new_event['id']
+                    # Get all users except the creator (limit to 500)
+                    all_users = query_db(
+                        'SELECT id FROM users WHERE id != ? LIMIT 500',
+                        (session['user_id'],)
+                    )
+                    # Create notifications for each user
+                    for user_row in all_users:
+                        create_notification(
+                            user_id=user_row['id'],
+                            notif_type='event_created',
+                            actor_id=session['user_id'],
+                            event_id=event_id,
+                            message=f"New global event: {title}"
+                        )
+            except Exception as e:
+                print(f"Error creating global event notifications: {e}")
         
         flash('Event created successfully!', 'success')
         return redirect(url_for('events_browse'))

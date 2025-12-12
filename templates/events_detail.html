@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>MotoLog - Event Detail</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
   <style>
     .event-hero { background: linear-gradient(135deg, var(--primary-500), var(--primary-600)); color: white; padding: 2rem; border-radius: 12px; margin-bottom: 2rem; }
     .event-hero h1 { margin: 0 0 1rem 0; font-size: 2rem; }
@@ -139,22 +140,13 @@
           <div class="event-info-value">{{ event['location_name'] }}</div>
           <p style="color: var(--muted); font-size: 0.9rem; margin-top: 0.8rem;">📌 City: {{ event['city'] }}</p>
           
-          {% if event['latitude'] and event['longitude'] %}
+          {% if event['latitude'] is not none and event['longitude'] is not none %}
             <p style="color: var(--muted); font-size: 0.9rem; margin-top: 0.3rem;">Coordinates: {{ event['latitude'] }}, {{ event['longitude'] }}</p>
             <div style="width: 100%; height: 300px; border-radius: 12px; overflow: hidden; margin-top: 1rem; box-shadow: var(--shadow-1);">
-              <iframe 
-                width="100%" 
-                height="100%" 
-                frameborder="0" 
-                style="border: none;" 
-                src="https://www.google.com/maps/embed/v1/place?key=YOUR_GOOGLE_MAPS_API_KEY&q={{ event['latitude'] }},{{ event['longitude'] }}" 
-                allowfullscreen="" 
-                loading="lazy" 
-                referrerpolicy="no-referrer-when-downgrade">
-              </iframe>
+              <div id="map" style="width:100%; height:100%;"></div>
             </div>
             <p style="font-size: 0.85rem; color: var(--muted); margin-top: 0.8rem;">
-              <a href="https://www.google.com/maps?q={{ event['latitude'] }},{{ event['longitude'] }}" target="_blank" style="color: var(--primary-600); text-decoration: none;">📍 Open in Google Maps</a>
+              <a href="https://www.maptiler.com/" target="_blank" style="color: var(--primary-600); text-decoration: none;">📍 Open in MapTiler</a>
             </p>
           {% else %}
             <p style="color: var(--muted); font-style: italic; margin-top: 0.8rem;">Location coordinates not provided</p>
@@ -219,4 +211,29 @@
 
   </div>
 </body>
+
+<!-- Leaflet JS for interactive map + MapTiler tiles -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script>
+      (function(){
+        const lat = {{ 'null' if event['latitude'] is none else event['latitude'] }};
+        const lon = {{ 'null' if event['longitude'] is none else event['longitude'] }};
+        if (lat !== null && lon !== null) {
+          // initialize map
+          const map = L.map('map').setView([lat, lon], 12);
+          // Use OpenStreetMap tiles as reliable fallback
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19
+          }).addTo(map);
+          // add marker
+          L.marker([lat, lon], { title: 'Event location' }).addTo(map);
+          map.invalidateSize();
+        } else {
+          // hide map container when no coords
+          const el = document.getElementById('map');
+          if (el) el.style.display = 'none';
+        }
+      })();
+    </script>
 </html>

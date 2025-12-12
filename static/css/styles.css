@@ -394,6 +394,13 @@ transform: translateY(0);
 opacity: 1;
 }
 
+/* make avatar clearly interactive and ensure menu accepts clicks */
+.profile .profile-avatar { cursor: pointer; }
+.profile .profile-menu { pointer-events: auto; }
+
+/* clickable participant avatars */
+.participant-avatar { cursor: pointer; }
+
 /* Small adjustments for file-list previews and long text */
 .file-preview { max-width: 100%; word-break: break-all; }
 
