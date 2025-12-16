@@ -59,46 +59,7 @@
               <div class="form-group">
                 <label for="country">Country</label>
                 <select id="country" name="country" required onchange="populateCities()">
-                  <option value="">Select a country</option>
-                  <option value="Bulgaria">Bulgaria</option>
-                  <option value="United Kingdom">United Kingdom</option>
-                  <option value="Spain">Spain</option>
-                  <option value="France">France</option>
-                  <option value="Germany">Germany</option>
-                  <option value="Italy">Italy</option>
-                  <option value="Poland">Poland</option>
-                  <option value="Romania">Romania</option>
-                  <option value="Greece">Greece</option>
-                  <option value="Czech Republic">Czech Republic</option>
-                  <option value="Hungary">Hungary</option>
-                  <option value="Serbia">Serbia</option>
-                  <option value="Ukraine">Ukraine</option>
-                  <option value="Portugal">Portugal</option>
-                  <option value="Belgium">Belgium</option>
-                  <option value="Netherlands">Netherlands</option>
-                  <option value="Austria">Austria</option>
-                  <option value="Switzerland">Switzerland</option>
-                  <option value="Sweden">Sweden</option>
-                  <option value="Norway">Norway</option>
-                  <option value="Denmark">Denmark</option>
-                  <option value="Finland">Finland</option>
-                  <option value="Ireland">Ireland</option>
-                  <option value="Croatia">Croatia</option>
-                  <option value="Slovenia">Slovenia</option>
-                  <option value="Slovakia">Slovakia</option>
-                  <option value="Lithuania">Lithuania</option>
-                  <option value="Latvia">Latvia</option>
-                  <option value="Estonia">Estonia</option>
-                  <option value="United States">United States</option>
-                  <option value="Canada">Canada</option>
-                  <option value="Australia">Australia</option>
-                  <option value="New Zealand">New Zealand</option>
-                  <option value="Japan">Japan</option>
-                  <option value="South Korea">South Korea</option>
-                  <option value="India">India</option>
-                  <option value="Brazil">Brazil</option>
-                  <option value="Mexico">Mexico</option>
-                  <option value="South Africa">South Africa</option>
+                  <option value="">Loading countries...</option>
                 </select>
               </div>
             </div>
@@ -138,49 +99,25 @@
   </div>
 
   <script>
-    const countryCities = {
-      "Bulgaria": ["Sofia", "Plovdiv", "Varna", "Burgas", "Ruse", "Stara Zagora", "Pleven", "Sliven", "Dobrich", "Shumen"],
-      "United Kingdom": ["London", "Manchester", "Birmingham", "Leeds", "Glasgow", "Bristol", "Edinburgh", "Liverpool", "Newcastle", "Cambridge"],
-      "Spain": ["Madrid", "Barcelona", "Valencia", "Seville", "Bilbao", "Malaga", "Murcia", "Palma", "Las Palmas", "Alicante"],
-      "France": ["Paris", "Marseille", "Lyon", "Toulouse", "Nice", "Nantes", "Strasbourg", "Montpellier", "Bordeaux", "Lille"],
-      "Germany": ["Berlin", "Munich", "Cologne", "Frankfurt", "Hamburg", "Dusseldorf", "Dortmund", "Essen", "Leipzig", "Dresden"],
-      "Italy": ["Rome", "Milan", "Naples", "Turin", "Palermo", "Genoa", "Bologna", "Florence", "Bari", "Catania"],
-      "Poland": ["Warsaw", "Krakow", "Lodz", "Wroclaw", "Poznan", "Gdansk", "Szczecin", "Bydgoszcz", "Lublin", "Katowice"],
-      "Romania": ["Bucharest", "Cluj-Napoca", "Timisoara", "Iasi", "Constanta", "Brasov", "Ploiesti", "Galati", "Oradea", "Craiova"],
-      "Greece": ["Athens", "Thessaloniki", "Patras", "Heraklion", "Larissa", "Volos", "Rethymno", "Chania", "Kalamata", "Ioannina"],
-      "Czech Republic": ["Prague", "Brno", "Ostrava", "Plzen", "Liberec", "Olomouc", "Ceske Budejovice", "Usti nad Labem", "Hradec Kralove", "Pizen"],
-      "Hungary": ["Budapest", "Debrecen", "Szeged", "Miskolc", "Pecs", "Gyor", "Nyiregyhaza", "Kecskement", "Szekesfehervar", "Szolnok"],
-      "Serbia": ["Belgrade", "Nis", "Novi Sad", "Zemun", "Subotica", "Smederevo", "Kragujevac", "Vranje", "Jagodina", "Leskovac"],
-      "Ukraine": ["Kyiv", "Kharkiv", "Odesa", "Donetsk", "Zaporizhzhia", "Lviv", "Mykolaiv", "Mariupol", "Luhansk", "Vinnytsia"],
-      "Portugal": ["Lisbon", "Porto", "Amadora", "Setúbal", "Braga", "Funchal", "Covilha", "Guarda", "Aveiro", "Castelo Branco"],
-      "Belgium": ["Brussels", "Antwerp", "Ghent", "Charleroi", "Liege", "Bruges", "Namur", "Leuven", "Hasselt", "Ostend"],
-      "Netherlands": ["Amsterdam", "Rotterdam", "The Hague", "Utrecht", "Eindhoven", "Groningen", "Tilburg", "Almere", "Breda", "Nijmegen"],
-      "Austria": ["Vienna", "Graz", "Linz", "Salzburg", "Innsbruck", "Klagenfurt", "Villach", "Dornbirn", "St. Polten", "Steyr"],
-      "Switzerland": ["Zurich", "Bern", "Geneva", "Basel", "Lausanne", "Biel", "Lucerne", "Winterthur", "Thun", "Lugano"],
-      "Sweden": ["Stockholm", "Gothenburg", "Malmo", "Uppsala", "Vasteras", "Orebro", "Linkoping", "Helsingborg", "Jonkoping", "Norrkoping"],
-      "Norway": ["Oslo", "Bergen", "Trondheim", "Stavanger", "Kristiansand", "Drammen", "Fredrikstad", "Sandnes", "Tonsberg", "Lillehammer"],
-      "Denmark": ["Copenhagen", "Aarhus", "Odense", "Aalborg", "Esbjerg", "Randers", "Kolding", "Horsens", "Silkeborg", "Ribe"],
-      "Finland": ["Helsinki", "Espoo", "Tampere", "Vantaa", "Turku", "Oulu", "Jyvaskyla", "Kuopio", "Lahti", "Pori"],
-      "Ireland": ["Dublin", "Cork", "Limerick", "Galway", "Waterford", "Drogheda", "Swords", "Dundalk", "Athlone", "Dun Laoghaire"],
-      "Croatia": ["Zagreb", "Split", "Rijeka", "Osijek", "Zadar", "Slavonski Brod", "Pula", "Karlovac", "Varazdin", "Vukovar"],
-      "Slovenia": ["Ljubljana", "Maribor", "Celje", "Kranj", "Novo Mesto", "Ptuj", "Kamnik", "Koper", "Izola", "Piran"],
-      "Slovakia": ["Bratislava", "Kosice", "Presov", "Zilina", "Banska Bystrica", "Nitra", "Trnava", "Martin", "Zvolen", "Poprad"],
-      "Lithuania": ["Vilnius", "Kaunas", "Klaipeda", "Siauliai", "Panevezys", "Alytus", "Mazeikiai", "Jonava", "Utena", "Telsinai"],
-      "Latvia": ["Riga", "Daugavpils", "Liepaja", "Jelgava", "Jurmala", "Ventspils", "Rezekne", "Ogre", "Salaspils", "Kuldiga"],
-      "Estonia": ["Tallinn", "Tartu", "Narva", "Kohtla-Jarve", "Parnu", "Viljandi", "Rakvere", "Sillamae", "Valga", "Keila"],
-      "United States": ["New York", "Los Angeles", "Chicago", "Houston", "Phoenix", "Philadelphia", "San Antonio", "San Diego", "Dallas", "San Jose"],
-      "Canada": ["Toronto", "Montreal", "Vancouver", "Calgary", "Edmonton", "Ottawa", "Winnipeg", "Quebec City", "Hamilton", "Kitchener"],
-      "Australia": ["Sydney", "Melbourne", "Brisbane", "Perth", "Adelaide", "Gold Coast", "Canberra", "Newcastle", "Wollongong", "Logan City"],
-      "New Zealand": ["Auckland", "Wellington", "Christchurch", "Hamilton", "Tauranga", "Lower Hutt", "Dunedin", "Palmerston North", "Rotorua", "New Plymouth"],
-      "Japan": ["Tokyo", "Yokohama", "Osaka", "Nagoya", "Sapporo", "Fukuoka", "Kobe", "Kyoto", "Kawasaki", "Saitama"],
-      "South Korea": ["Seoul", "Busan", "Incheon", "Daegu", "Daejeon", "Gwangju", "Ulsan", "Sung-Nam", "Bucheon", "Seongnam"],
-      "India": ["Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai", "Kolkata", "Pune", "Ahmedabad", "Jaipur", "Surat"],
-      "Brazil": ["Sao Paulo", "Rio de Janeiro", "Salvador", "Fortaleza", "Belo Horizonte", "Brasilia", "Manaus", "Curitiba", "Recife", "Porto Alegre"],
-      "Mexico": ["Mexico City", "Ecatepec", "Guadalajara", "Monterrey", "Puebla", "Toluca", "Juarez", "Cancun", "Veracruz", "Morelia"],
-      "South Africa": ["Johannesburg", "Cape Town", "Durban", "Pretoria", "Port Elizabeth", "Bloemfontein", "Pietermaritzburg", "East London", "Benoni", "Vereeniging"]
-    };
+    async function loadCountries() {
+      try {
+        const res = await fetch('/api/countries');
+        const data = await res.json();
+        const countrySelect = document.getElementById('country');
+        countrySelect.innerHTML = '<option value="">Select a country</option>';
+        (data.countries || []).forEach(country => {
+          const option = document.createElement('option');
+          option.value = country;
+          option.textContent = country;
+          countrySelect.appendChild(option);
+        });
+      } catch (err) {
+        console.error('Failed to load countries', err);
+        document.getElementById('country').innerHTML = '<option value="">Error loading countries</option>';
+      }
+    }
 
-    function populateCities() {
+    async function populateCities() {
       const countrySelect = document.getElementById('country');
       const citySelect = document.getElementById('city');
       const selectedCountry = countrySelect.value;
@@ -188,19 +125,25 @@
       // Clear existing options except the default
       citySelect.innerHTML = '<option value="">Select a city</option>';
 
-      if (selectedCountry && countryCities[selectedCountry]) {
-        const cities = countryCities[selectedCountry];
+      if (!selectedCountry) return;
+
+      try {
+        const res = await fetch(`/api/cities?country=${encodeURIComponent(selectedCountry)}`);
+        const data = await res.json();
+        const cities = (data && data.cities) || [];
         cities.forEach(city => {
           const option = document.createElement('option');
           option.value = city;
           option.textContent = city;
           citySelect.appendChild(option);
         });
+      } catch (err) {
+        console.error('Failed to load cities', err);
       }
-
-      // Reset city selection
-      citySelect.value = '';
     }
+
+    // Load countries on page load
+    document.addEventListener('DOMContentLoaded', loadCountries);
   </script>
 </body>
 </html>

@@ -118,6 +118,255 @@ def create_notification(user_id, notif_type, actor_id=None, event_id=None, messa
     except Exception as e:
         print(f"Notification creation error: {e}")
 
+
+@app.route('/api/countries')
+def api_countries():
+    """Return JSON list of all countries in the world."""
+    # Always return the complete world list for registration/profile forms
+    countries = [
+        'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina', 'Armenia', 'Australia', 'Austria',
+        'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados', 'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan',
+        'Bolivia', 'Bosnia and Herzegovina', 'Botswana', 'Brazil', 'Brunei', 'Bulgaria', 'Burkina Faso', 'Burundi', 'Cambodia', 'Cameroon',
+        'Canada', 'Cape Verde', 'Central African Republic', 'Chad', 'Chile', 'China', 'Colombia', 'Comoros', 'Congo', 'Costa Rica',
+        'Croatia', 'Cuba', 'Cyprus', 'Czech Republic', 'Czechia', 'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic', 'East Timor',
+        'Ecuador', 'Egypt', 'El Salvador', 'Equatorial Guinea', 'Eritrea', 'Estonia', 'Ethiopia', 'Fiji', 'Finland', 'France',
+        'Gabon', 'Gambia', 'Georgia', 'Germany', 'Ghana', 'Gibraltar', 'Greece', 'Grenada', 'Guatemala', 'Guinea',
+        'Guinea-Bissau', 'Guyana', 'Haiti', 'Honduras', 'Hong Kong', 'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran',
+        'Iraq', 'Ireland', 'Israel', 'Italy', 'Ivory Coast', 'Jamaica', 'Japan', 'Jordan', 'Kazakhstan', 'Kenya',
+        'Kiribati', 'Kosovo', 'Kuwait', 'Kyrgyzstan', 'Laos', 'Latvia', 'Lebanon', 'Lesotho', 'Liberia', 'Libya',
+        'Liechtenstein', 'Lithuania', 'Luxembourg', 'Macao', 'Madagascar', 'Malawi', 'Malaysia', 'Maldives', 'Mali', 'Malta',
+        'Marshall Islands', 'Mauritania', 'Mauritius', 'Mexico', 'Micronesia', 'Moldova', 'Monaco', 'Mongolia', 'Montenegro', 'Morocco',
+        'Mozambique', 'Myanmar', 'Namibia', 'Nauru', 'Nepal', 'Netherlands', 'New Zealand', 'Nicaragua', 'Niger', 'Nigeria',
+        'North Korea', 'North Macedonia', 'Norway', 'Oman', 'Pakistan', 'Palau', 'Palestine', 'Panama', 'Papua New Guinea', 'Paraguay',
+        'Peru', 'Philippines', 'Poland', 'Portugal', 'Puerto Rico', 'Qatar', 'Romania', 'Russia', 'Rwanda', 'Saint Kitts and Nevis',
+        'Saint Lucia', 'Saint Vincent and the Grenadines', 'Samoa', 'San Marino', 'Sao Tome and Principe', 'Saudi Arabia', 'Senegal', 'Serbia', 'Seychelles', 'Sierra Leone',
+        'Singapore', 'Slovakia', 'Slovenia', 'Solomon Islands', 'Somalia', 'South Africa', 'South Korea', 'South Sudan', 'Spain', 'Sri Lanka',
+        'Sudan', 'Suriname', 'Svalbard and Jan Mayen', 'Sweden', 'Switzerland', 'Syria', 'Taiwan', 'Tajikistan', 'Tanzania', 'Thailand',
+        'Timor-Leste', 'Togo', 'Tonga', 'Trinidad and Tobago', 'Tunisia', 'Turkey', 'Turkmenistan', 'Turks and Caicos Islands', 'Tuvalu', 'Uganda',
+        'Ukraine', 'United Arab Emirates', 'United Kingdom', 'United States', 'Uruguay', 'US Minor Islands', 'Uzbekistan', 'Vanuatu', 'Vatican City', 'Venezuela',
+        'Vietnam', 'Virgin Islands', 'Wallis and Futuna', 'Western Sahara', 'Yemen', 'Zambia', 'Zimbabwe'
+    ]
+    return jsonify({'countries': sorted(countries)})
+
+@app.route('/api/cities')
+def api_cities():
+    """Return JSON list of cities for a given country."""
+    country = request.args.get('country', '').strip()
+    
+    # Comprehensive city fallback mapping for all countries
+    country_cities = {
+        'Afghanistan': ['Kabul', 'Kandahar', 'Herat', 'Mazar-i-Sharif'],
+        'Albania': ['Tirana', 'Durrës', 'Vlorë', 'Shkodër', 'Korçë'],
+        'Algeria': ['Algiers', 'Oran', 'Constantine', 'Annaba', 'Blida'],
+        'Andorra': ['Andorra la Vella', 'Escaldes-Engordany'],
+        'Angola': ['Luanda', 'Huambo', 'Benguela', 'Lobito', 'Malanje'],
+        'Antigua and Barbuda': ['Saint Johns', 'All Saints', 'Liberta'],
+        'Argentina': ['Buenos Aires', 'Cordoba', 'Rosario', 'Mendoza', 'La Plata'],
+        'Armenia': ['Yerevan', 'Gyumri', 'Vanadzor'],
+        'Australia': ['Sydney', 'Melbourne', 'Brisbane', 'Perth', 'Adelaide', 'Hobart', 'Canberra'],
+        'Austria': ['Vienna', 'Graz', 'Linz', 'Salzburg', 'Innsbruck', 'Klagenfurt'],
+        'Azerbaijan': ['Baku', 'Ganja', 'Sumgait', 'Quba', 'Mingachevir'],
+        'Bahamas': ['Nassau', 'Freeport', 'Marsh Harbour'],
+        'Bahrain': ['Manama', 'Riffa', 'Muharraq', 'Hamad Town'],
+        'Bangladesh': ['Dhaka', 'Chittagong', 'Khulna', 'Rajshahi', 'Sylhet'],
+        'Barbados': ['Bridgetown', 'Speightstown', 'Bathsheba'],
+        'Belarus': ['Minsk', 'Brest', 'Gomel', 'Mogilev', 'Vitebsk'],
+        'Belgium': ['Brussels', 'Antwerp', 'Ghent', 'Charleroi', 'Liege', 'Bruges'],
+        'Belize': ['Belize City', 'San Ignacio', 'Orange Walk', 'Dangriga'],
+        'Benin': ['Cotonou', 'Porto-Novo', 'Parakou', 'Abomey'],
+        'Bhutan': ['Thimphu', 'Paro', 'Punakha', 'Trongsa'],
+        'Bolivia': ['La Paz', 'Santa Cruz', 'Cochabamba', 'Oruro', 'Sucre'],
+        'Bosnia and Herzegovina': ['Sarajevo', 'Banja Luka', 'Zenica', 'Tuzla', 'Mostar'],
+        'Botswana': ['Gaborone', 'Francistown', 'Maun', 'Selibe-Phikwe'],
+        'Brazil': ['Sao Paulo', 'Rio de Janeiro', 'Brasilia', 'Salvador', 'Fortaleza', 'Belo Horizonte', 'Manaus'],
+        'Brunei': ['Bandar Seri Begawan', 'Kuala Belait', 'Tutong'],
+        'Bulgaria': ['Sofia', 'Plovdiv', 'Varna', 'Burgas', 'Ruse', 'Stara Zagora'],
+        'Burkina Faso': ['Ouagadougou', 'Bobo-Dioulasso', 'Koudougou', 'Ouahigouya'],
+        'Burundi': ['Bujumbura', 'Gitega', 'Ngozi', 'Muyinga'],
+        'Cambodia': ['Phnom Penh', 'Siem Reap', 'Battambang', 'Kompong Cham'],
+        'Cameroon': ['Douala', 'Yaounde', 'Garoua', 'Bamenda', 'Bafoussam'],
+        'Canada': ['Toronto', 'Montreal', 'Vancouver', 'Calgary', 'Edmonton', 'Ottawa', 'Quebec City'],
+        'Cape Verde': ['Praia', 'Mindelo', 'Santa Maria', 'Assomada'],
+        'Central African Republic': ['Bangui', 'Berberati', 'Bambari', 'Bouar'],
+        'Chad': ['NDjamena', 'Abeth', 'Moundou', 'Sarh'],
+        'Chile': ['Santiago', 'Valparaiso', 'Concepcion', 'La Serena', 'Valdivia'],
+        'China': ['Beijing', 'Shanghai', 'Guangzhou', 'Shenzhen', 'Chongqing', 'Xian', 'Hangzhou'],
+        'Colombia': ['Bogota', 'Medellin', 'Cali', 'Barranquilla', 'Cartagena'],
+        'Comoros': ['Moroni', 'Mutsamudu', 'Fomboni'],
+        'Congo': ['Brazzaville', 'Pointe-Noire', 'Dolisie', 'Loubomo'],
+        'Costa Rica': ['San Jose', 'Alajuela', 'Cartago', 'Limon', 'Puntarenas'],
+        'Croatia': ['Zagreb', 'Split', 'Rijeka', 'Osijek', 'Zadar', 'Pula'],
+        'Cuba': ['Havana', 'Santiago de Cuba', 'Camaguey', 'Santa Clara', 'Holguin'],
+        'Cyprus': ['Nicosia', 'Limassol', 'Paphos', 'Larnaca', 'Famagusta'],
+        'Czech Republic': ['Prague', 'Brno', 'Ostrava', 'Plzen', 'Liberec', 'Olomouc'],
+        'Czechia': ['Prague', 'Brno', 'Ostrava', 'Plzen', 'Liberec', 'Olomouc'],
+        'Denmark': ['Copenhagen', 'Aarhus', 'Odense', 'Aalborg', 'Esbjerg', 'Randers'],
+        'Djibouti': ['Djibouti City', 'Ali Sabieh', 'Arta', 'Tadjourah'],
+        'Dominica': ['Roseau', 'Portsmouth', 'Scotts Head'],
+        'Dominican Republic': ['Santo Domingo', 'Santiago', 'La Romana', 'San Cristobal'],
+        'East Timor': ['Dili', 'Baucau', 'Maliana', 'Same'],
+        'Ecuador': ['Quito', 'Guayaquil', 'Cuenca', 'Ambato', 'Manta'],
+        'Egypt': ['Cairo', 'Alexandria', 'Giza', 'Aswan', 'Luxor', 'Helwan'],
+        'El Salvador': ['San Salvador', 'Santa Ana', 'San Miguel', 'Sonsonate'],
+        'Equatorial Guinea': ['Malabo', 'Bata', 'Ebebiyin', 'Evinayong'],
+        'Eritrea': ['Asmara', 'Keren', 'Massawa', 'Mendefera'],
+        'Estonia': ['Tallinn', 'Tartu', 'Narva', 'Kohtla-Jarve', 'Parnu', 'Viljandi'],
+        'Ethiopia': ['Addis Ababa', 'Dire Dawa', 'Adama', 'Hawassa', 'Mekelle'],
+        'Fiji': ['Suva', 'Nadi', 'Lautoka', 'Ba', 'Levuka'],
+        'Finland': ['Helsinki', 'Espoo', 'Tampere', 'Vantaa', 'Turku', 'Oulu', 'Jyvaskyla'],
+        'France': ['Paris', 'Marseille', 'Lyon', 'Toulouse', 'Nice', 'Nantes', 'Strasbourg', 'Bordeaux'],
+        'Gabon': ['Libreville', 'Port-Gentil', 'Franceville', 'Oyem'],
+        'Gambia': ['Banjul', 'Serekunda', 'Brikama', 'Lamin'],
+        'Georgia': ['Tbilisi', 'Kutaisi', 'Batumi', 'Zugdidi', 'Telavi'],
+        'Germany': ['Berlin', 'Munich', 'Cologne', 'Frankfurt', 'Hamburg', 'Dresden', 'Dusseldorf'],
+        'Ghana': ['Accra', 'Kumasi', 'Tamale', 'Sekondi-Takoradi', 'Cape Coast'],
+        'Gibraltar': ['Gibraltar'],
+        'Greece': ['Athens', 'Thessaloniki', 'Patras', 'Heraklion', 'Larissa', 'Volos'],
+        'Grenada': ['Saint Georges', 'Sauteurs', 'Gouyave'],
+        'Guatemala': ['Guatemala City', 'Quetzaltenango', 'Escuintla', 'Antigua'],
+        'Guinea': ['Conakry', 'Kindia', 'Mamou', 'Labe'],
+        'Guinea-Bissau': ['Bissau', 'Bafata', 'Gabu', 'Cacheu'],
+        'Guyana': ['Georgetown', 'Linden', 'New Amsterdam', 'Bartica'],
+        'Haiti': ['Port-au-Prince', 'Cap-Haitien', 'Gonaives', 'Jeremie'],
+        'Honduras': ['Tegucigalpa', 'San Pedro Sula', 'La Ceiba', 'Choloma'],
+        'Hong Kong': ['Hong Kong', 'Kowloon', 'New Territories'],
+        'Hungary': ['Budapest', 'Debrecen', 'Szeged', 'Miskolc', 'Pecs', 'Gyor'],
+        'Iceland': ['Reykjavik', 'Hafnarfjordur', 'Kopavogur', 'Akranes'],
+        'India': ['Mumbai', 'Delhi', 'Bangalore', 'Hyderabad', 'Chennai', 'Kolkata', 'Pune'],
+        'Indonesia': ['Jakarta', 'Surabaya', 'Bandung', 'Medan', 'Semarang', 'Makassar'],
+        'Iran': ['Tehran', 'Mashhad', 'Isfahan', 'Shiraz', 'Tabriz', 'Qom'],
+        'Iraq': ['Baghdad', 'Mosul', 'Basra', 'Kirkuk', 'Najaf'],
+        'Ireland': ['Dublin', 'Cork', 'Limerick', 'Galway', 'Waterford', 'Drogheda'],
+        'Israel': ['Jerusalem', 'Tel Aviv', 'Haifa', 'Rishon LeZion', 'Petah Tikva'],
+        'Italy': ['Rome', 'Milan', 'Naples', 'Turin', 'Palermo', 'Genoa', 'Bologna', 'Florence'],
+        'Ivory Coast': ['Yamoussoukro', 'Abidjan', 'Bouake', 'Daloa', 'Korhogo'],
+        'Jamaica': ['Kingston', 'Montego Bay', 'Mandeville', 'Spanish Town'],
+        'Japan': ['Tokyo', 'Yokohama', 'Osaka', 'Nagoya', 'Sapporo', 'Fukuoka', 'Kyoto'],
+        'Jordan': ['Amman', 'Zarqa', 'Irbid', 'Salt', 'Aqaba'],
+        'Kazakhstan': ['Nur-Sultan', 'Almaty', 'Karaganda', 'Shymkent', 'Aktobe'],
+        'Kenya': ['Nairobi', 'Mombasa', 'Kisumu', 'Nakuru', 'Eldoret'],
+        'Kiribati': ['South Tarawa', 'Butaritari', 'Abemama'],
+        'Kosovo': ['Pristina', 'Prizren', 'Ferizaj', 'Gjakove'],
+        'Kuwait': ['Kuwait City', 'Al Jahra', 'Hawalli', 'Salmiya'],
+        'Kyrgyzstan': ['Bishkek', 'Osh', 'Jalal-Abad', 'Kara-Balta'],
+        'Laos': ['Vientiane', 'Luang Prabang', 'Savannakhet', 'Pakse'],
+        'Latvia': ['Riga', 'Daugavpils', 'Liepaja', 'Jelgava', 'Jurmala'],
+        'Lebanon': ['Beirut', 'Tripoli', 'Sidon', 'Tyre', 'Zahle'],
+        'Lesotho': ['Maseru', 'Teyateyaneng', 'Mafeteng', 'Leribe'],
+        'Liberia': ['Monrovia', 'Gbarnga', 'Kakata', 'Buchanan'],
+        'Libya': ['Tripoli', 'Benghazi', 'Misrata', 'Al Khums'],
+        'Liechtenstein': ['Vaduz', 'Schaan', 'Triesen'],
+        'Lithuania': ['Vilnius', 'Kaunas', 'Klaipeda', 'Siauliai', 'Panevezys'],
+        'Luxembourg': ['Luxembourg City', 'Esch-sur-Alzette', 'Differdange'],
+        'Macao': ['Macao'],
+        'Madagascar': ['Antananarivo', 'Antsirabe', 'Fianarantsoa', 'Toliara'],
+        'Malawi': ['Lilongwe', 'Blantyre', 'Mzuzu', 'Zomba'],
+        'Malaysia': ['Kuala Lumpur', 'George Town', 'Penang', 'Johor Bahru', 'Kota Kinabalu'],
+        'Maldives': ['Male', 'Addu City'],
+        'Mali': ['Bamako', 'Kayes', 'Segou', 'Mopti'],
+        'Malta': ['Valletta', 'Birkirkara', 'Mosta', 'Naxxar', 'Sliema'],
+        'Marshall Islands': ['Majuro', 'Ebeye'],
+        'Mauritania': ['Nouakchott', 'Nouadhibou', 'Aioun El Atrouss'],
+        'Mauritius': ['Port Louis', 'Beau Bassin-Rose Hill', 'Vacoas-Phoenix'],
+        'Mexico': ['Mexico City', 'Guadalajara', 'Monterrey', 'Puebla', 'Cancun', 'Veracruz'],
+        'Micronesia': ['Palikir', 'Kolonia', 'Lelu'],
+        'Moldova': ['Chisinau', 'Tiraspol', 'Balti', 'Cahul'],
+        'Monaco': ['Monaco'],
+        'Mongolia': ['Ulaanbaatar', 'Darhan', 'Erdenet', 'Choybalssan'],
+        'Montenegro': ['Podgorica', 'Cetinje', 'Niksic', 'Pljevlja'],
+        'Morocco': ['Casablanca', 'Fez', 'Marrakech', 'Tangier', 'Rabat', 'Meknes'],
+        'Mozambique': ['Maputo', 'Beira', 'Nampula', 'Chimoio'],
+        'Myanmar': ['Yangon', 'Mandalay', 'Naypyidaw', 'Mawlamyine'],
+        'Namibia': ['Windhoek', 'Walvis Bay', 'Swakopmund', 'Oshakati'],
+        'Nauru': ['Yaren'],
+        'Nepal': ['Kathmandu', 'Pokhara', 'Biratnagar', 'Lalitpur'],
+        'Netherlands': ['Amsterdam', 'Rotterdam', 'The Hague', 'Utrecht', 'Eindhoven', 'Groningen'],
+        'New Zealand': ['Auckland', 'Wellington', 'Christchurch', 'Hamilton', 'Tauranga'],
+        'Nicaragua': ['Managua', 'Leon', 'Granada', 'Masaya'],
+        'Niger': ['Niamey', 'Zinder', 'Maradi', 'Agadez'],
+        'Nigeria': ['Lagos', 'Abuja', 'Kano', 'Ibadan', 'Katsina'],
+        'North Korea': ['Pyongyang', 'Nampo', 'Wonsan', 'Hamhung'],
+        'North Macedonia': ['Skopje', 'Bitola', 'Kumanovo', 'Tetovo'],
+        'Norway': ['Oslo', 'Bergen', 'Trondheim', 'Stavanger', 'Kristiansand', 'Drammen'],
+        'Oman': ['Muscat', 'Salalah', 'Sohar', 'Ibri'],
+        'Pakistan': ['Karachi', 'Lahore', 'Islamabad', 'Faisalabad', 'Rawalpindi'],
+        'Palau': ['Ngerulmud', 'Koror'],
+        'Palestine': ['Ramallah', 'Gaza City', 'Bethlehem', 'Jericho'],
+        'Panama': ['Panama City', 'Colon', 'San Miguelito', 'Panama Viejo'],
+        'Papua New Guinea': ['Port Moresby', 'Lae', 'Madang', 'Mount Hagen'],
+        'Paraguay': ['Asuncion', 'Ciudad del Este', 'Encarnacion', 'Villarrica'],
+        'Peru': ['Lima', 'Arequipa', 'Trujillo', 'Chiclayo', 'Cusco'],
+        'Philippines': ['Manila', 'Cebu City', 'Davao', 'Cagayan de Oro', 'Quezon City'],
+        'Poland': ['Warsaw', 'Krakow', 'Lodz', 'Wroclaw', 'Poznan', 'Gdansk'],
+        'Portugal': ['Lisbon', 'Porto', 'Amadora', 'Setubal', 'Braga'],
+        'Puerto Rico': ['San Juan', 'Ponce', 'Mayaguez', 'Caguas'],
+        'Qatar': ['Doha', 'Al Rayyan', 'Umm Salal', 'Al Wakrah'],
+        'Romania': ['Bucharest', 'Cluj-Napoca', 'Timisoara', 'Iasi', 'Constanta'],
+        'Russia': ['Moscow', 'Saint Petersburg', 'Novosibirsk', 'Yekaterinburg', 'Nizhny Novgorod'],
+        'Rwanda': ['Kigali', 'Butare', 'Gitarama', 'Gisenyi'],
+        'Saint Kitts and Nevis': ['Basseterre', 'Charlestown'],
+        'Saint Lucia': ['Castries', 'Soufriere', 'Choiseul'],
+        'Saint Vincent and the Grenadines': ['Kingstown', 'Barrouallie'],
+        'Samoa': ['Apia', 'Savaii'],
+        'San Marino': ['San Marino', 'Borgo Maggiore'],
+        'Sao Tome and Principe': ['Sao Tome', 'Santo Antonio'],
+        'Saudi Arabia': ['Riyadh', 'Jeddah', 'Mecca', 'Medina', 'Dammam'],
+        'Senegal': ['Dakar', 'Thies', 'Saint-Louis', 'Kaolack'],
+        'Serbia': ['Belgrade', 'Nis', 'Novi Sad', 'Zemun', 'Subotica'],
+        'Seychelles': ['Victoria', 'Anse Royale', 'Cascade'],
+        'Sierra Leone': ['Freetown', 'Bo', 'Kenema', 'Makeni'],
+        'Singapore': ['Singapore'],
+        'Slovakia': ['Bratislava', 'Kosice', 'Presov', 'Zilina', 'Banska Bystrica'],
+        'Slovenia': ['Ljubljana', 'Maribor', 'Celje', 'Kranj', 'Novo Mesto'],
+        'Solomon Islands': ['Honiara', 'Gizo', 'Buala'],
+        'Somalia': ['Mogadishu', 'Hargeisa', 'Kismayo', 'Bosaso'],
+        'South Africa': ['Johannesburg', 'Cape Town', 'Durban', 'Pretoria', 'Bloemfontein'],
+        'South Korea': ['Seoul', 'Busan', 'Incheon', 'Daegu', 'Daejeon'],
+        'South Sudan': ['Juba', 'Malakal', 'Bor', 'Wau'],
+        'Spain': ['Madrid', 'Barcelona', 'Valencia', 'Seville', 'Bilbao', 'Malaga'],
+        'Sri Lanka': ['Colombo', 'Kandy', 'Galle', 'Jaffna', 'Anuradhapura'],
+        'Sudan': ['Khartoum', 'Omdurman', 'Port Sudan', 'Kassala'],
+        'Suriname': ['Paramaribo', 'Lelydorp'],
+        'Svalbard and Jan Mayen': ['Longyearbyen', 'Barentsburg'],
+        'Sweden': ['Stockholm', 'Gothenburg', 'Malmo', 'Uppsala', 'Vasteras'],
+        'Switzerland': ['Zurich', 'Bern', 'Geneva', 'Basel', 'Lausanne', 'Lucerne'],
+        'Syria': ['Damascus', 'Aleppo', 'Homs', 'Hama', 'Latakia'],
+        'Taiwan': ['Taipei', 'Kaohsiung', 'Taichung', 'Tainan', 'Keelung'],
+        'Tajikistan': ['Dushanbe', 'Khujand', 'Khorog', 'Qulob'],
+        'Tanzania': ['Dar es Salaam', 'Mwanza', 'Arusha', 'Mbeya'],
+        'Thailand': ['Bangkok', 'Chiang Mai', 'Pattaya', 'Udon Thani', 'Phuket'],
+        'Timor-Leste': ['Dili', 'Baucau', 'Maliana', 'Suai'],
+        'Togo': ['Lome', 'Sokode', 'Kpalime', 'Atakpame'],
+        'Tonga': ['Nuku alofa', 'Vavau'],
+        'Trinidad and Tobago': ['Port of Spain', 'San Fernando', 'Arima'],
+        'Tunisia': ['Tunis', 'Sfax', 'Sousse', 'Kairouan'],
+        'Turkey': ['Istanbul', 'Ankara', 'Izmir', 'Bursa', 'Antalya'],
+        'Turkmenistan': ['Ashgabat', 'Turkmenabat', 'Balkanabat'],
+        'Turks and Caicos Islands': ['Cockburn Town', 'Providenciales'],
+        'Tuvalu': ['Funafuti', 'Nui'],
+        'Uganda': ['Kampala', 'Gulu', 'Lira', 'Mbarara'],
+        'Ukraine': ['Kyiv', 'Kharkiv', 'Odesa', 'Donetsk', 'Zaporizhzhia', 'Lviv'],
+        'United Arab Emirates': ['Dubai', 'Abu Dhabi', 'Sharjah', 'Ajman', 'Ras Al Khaimah'],
+        'United Kingdom': ['London', 'Manchester', 'Birmingham', 'Leeds', 'Glasgow', 'Bristol', 'Edinburgh'],
+        'United States': ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix', 'Philadelphia', 'San Antonio'],
+        'Uruguay': ['Montevideo', 'Salto', 'Paysandu', 'Rivera'],
+        'US Minor Islands': ['Washington DC'],
+        'Uzbekistan': ['Tashkent', 'Samarkand', 'Bukhara', 'Khiva'],
+        'Vanuatu': ['Port Vila', 'Luganville', 'Isangel'],
+        'Vatican City': ['Vatican City'],
+        'Venezuela': ['Caracas', 'Maracaibo', 'Valencia', 'Barquisimeto'],
+        'Vietnam': ['Hanoi', 'Ho Chi Minh City', 'Da Nang', 'Hai Phong'],
+        'Virgin Islands': ['Charlotte Amalie', 'Christiansted'],
+        'Wallis and Futuna': ['Mata-Utu', 'Leava'],
+        'Western Sahara': ['El Aaiun', 'Dakhla'],
+        'Yemen': ['Sanaa', 'Aden', 'Taiz', 'Ibb'],
+        'Zambia': ['Lusaka', 'Ndola', 'Kitwe', 'Livingstone'],
+        'Zimbabwe': ['Harare', 'Bulawayo', 'Chitungwiza', 'Gweru']
+    }
+    
+    cities = country_cities.get(country, [])
+    return jsonify({'cities': cities})
+
 @app.route('/')
 def home():
     if 'user_id' in session:
@@ -1518,6 +1767,9 @@ def events_browse():
     search = request.args.get('search', '').strip()
     sort_by = request.args.get('sort', 'soonest')  # soonest, popular, nearest
     
+    # Scope (local/global)
+    scope = request.args.get('scope', 'local')
+
     # Base query: only upcoming and ongoing events (exclude cancelled and past)
     query = '''
         SELECT e.*, u.username, u.profile_pic,
@@ -1539,6 +1791,13 @@ def events_browse():
     if city_filter:
         query += ' AND e.city = ?'
         args.append(city_filter)
+
+    # Filter by scope
+    if scope == 'local':
+        # Show events marked local
+        query += ' AND (e.is_local = 1 OR e.is_local IS NULL)'
+    elif scope == 'global':
+        query += ' AND e.is_local = 0'
     
     # Search by title, description, location_name or city
     if search:
@@ -1559,8 +1818,11 @@ def events_browse():
     
     events_rows = query_db(query, args)
 
-    # Build list of available cities for the city filter dropdown
-    cities_rows = query_db("SELECT DISTINCT city FROM events WHERE city IS NOT NULL AND city != '' ORDER BY city ASC")
+    # Build list of available cities for the city filter dropdown (scope-aware)
+    if scope == 'global':
+        cities_rows = query_db("SELECT DISTINCT city FROM events WHERE city IS NOT NULL AND city <> ? AND is_local = 0 ORDER BY city ASC", ('',))
+    else:
+        cities_rows = query_db("SELECT DISTINCT city FROM events WHERE city IS NOT NULL AND city <> ? AND (is_local = 1 OR is_local IS NULL) ORDER BY city ASC", ('',))
     cities = [r['city'] for r in cities_rows]
     
     # Convert each sqlite3.Row to a mutable dict and enrich with computed fields
@@ -1601,6 +1863,7 @@ def events_browse():
                            search_query=search,
                            sort_by=sort_by,
                            cities=cities,
+                           event_scope=scope,
                            city_filter=city_filter)
 
 @app.route('/events/create', methods=['GET', 'POST'])
@@ -1621,7 +1884,18 @@ def create_event():
         max_participants = request.form.get('max_participants', '').strip()
         is_local = request.form.get('is_local', 'on') == 'on'
         
-        # Validation
+        # Prepare allowed cities list (server-driven) and Validation
+        user_country = session.get('country')
+        allowed_cities = []
+        if user_country:
+            rows = query_db('SELECT DISTINCT city FROM users WHERE country = ? AND city IS NOT NULL AND city <> ? ORDER BY city ASC', (user_country, ''))
+            allowed_cities = [r['city'] for r in rows]
+        if not allowed_cities:
+            rows = query_db("SELECT DISTINCT city FROM events WHERE city IS NOT NULL AND city <> ? ORDER BY city ASC", ('',))
+            allowed_cities = [r['city'] for r in rows]
+        if not allowed_cities:
+            allowed_cities = ['Sofia', 'London', 'Madrid', 'Paris', 'Berlin', 'Rome', 'New York']
+
         errors = []
         if not title or len(title) < 3:
             errors.append('Title must be at least 3 characters.')
@@ -1633,6 +1907,11 @@ def create_event():
             errors.append('Location name is required.')
         if not city or len(city) < 2:
             errors.append('City is required.')
+        else:
+            # ensure city is one of allowed options (case-insensitive)
+            low_allowed = {c.lower() for c in allowed_cities}
+            if city.lower() not in low_allowed:
+                errors.append('City is not in the allowed list. Please choose one of the provided cities.')
         
         # Coordinates are now optional
         lat = None
@@ -1760,7 +2039,225 @@ def create_event():
         flash('Event created successfully!', 'success')
         return redirect(url_for('events_browse'))
     
-    return render_template('events_create.html', categories=EVENT_CATEGORIES)
+    # Prepare cities list for the create form using comprehensive country mapping
+    user_country = session.get('country')
+    cities = []
+    
+    # Comprehensive city mapping for all countries
+    country_cities = {
+        'Afghanistan': ['Kabul', 'Kandahar', 'Herat', 'Mazar-i-Sharif'],
+        'Albania': ['Tirana', 'Durrës', 'Vlorë', 'Shkodër', 'Korçë'],
+        'Algeria': ['Algiers', 'Oran', 'Constantine', 'Annaba', 'Blida'],
+        'Andorra': ['Andorra la Vella', 'Escaldes-Engordany'],
+        'Angola': ['Luanda', 'Huambo', 'Benguela', 'Lobito', 'Malanje'],
+        'Antigua and Barbuda': ['Saint Johns', 'All Saints', 'Liberta'],
+        'Argentina': ['Buenos Aires', 'Cordoba', 'Rosario', 'Mendoza', 'La Plata'],
+        'Armenia': ['Yerevan', 'Gyumri', 'Vanadzor'],
+        'Australia': ['Sydney', 'Melbourne', 'Brisbane', 'Perth', 'Adelaide', 'Hobart', 'Canberra'],
+        'Austria': ['Vienna', 'Graz', 'Linz', 'Salzburg', 'Innsbruck', 'Klagenfurt'],
+        'Azerbaijan': ['Baku', 'Ganja', 'Sumgait', 'Quba', 'Mingachevir'],
+        'Bahamas': ['Nassau', 'Freeport', 'Marsh Harbour'],
+        'Bahrain': ['Manama', 'Riffa', 'Muharraq', 'Hamad Town'],
+        'Bangladesh': ['Dhaka', 'Chittagong', 'Khulna', 'Rajshahi', 'Sylhet'],
+        'Barbados': ['Bridgetown', 'Speightstown', 'Bathsheba'],
+        'Belarus': ['Minsk', 'Brest', 'Gomel', 'Mogilev', 'Vitebsk'],
+        'Belgium': ['Brussels', 'Antwerp', 'Ghent', 'Charleroi', 'Liege', 'Bruges'],
+        'Belize': ['Belize City', 'San Ignacio', 'Orange Walk', 'Dangriga'],
+        'Benin': ['Cotonou', 'Porto-Novo', 'Parakou', 'Abomey'],
+        'Bhutan': ['Thimphu', 'Paro', 'Punakha', 'Trongsa'],
+        'Bolivia': ['La Paz', 'Santa Cruz', 'Cochabamba', 'Oruro', 'Sucre'],
+        'Bosnia and Herzegovina': ['Sarajevo', 'Banja Luka', 'Zenica', 'Tuzla', 'Mostar'],
+        'Botswana': ['Gaborone', 'Francistown', 'Maun', 'Selibe-Phikwe'],
+        'Brazil': ['Sao Paulo', 'Rio de Janeiro', 'Brasilia', 'Salvador', 'Fortaleza', 'Belo Horizonte', 'Manaus'],
+        'Brunei': ['Bandar Seri Begawan', 'Kuala Belait', 'Tutong'],
+        'Bulgaria': ['Sofia', 'Plovdiv', 'Varna', 'Burgas', 'Ruse', 'Stara Zagora'],
+        'Burkina Faso': ['Ouagadougou', 'Bobo-Dioulasso', 'Koudougou', 'Ouahigouya'],
+        'Burundi': ['Bujumbura', 'Gitega', 'Ngozi', 'Muyinga'],
+        'Cambodia': ['Phnom Penh', 'Siem Reap', 'Battambang', 'Kompong Cham'],
+        'Cameroon': ['Douala', 'Yaounde', 'Garoua', 'Bamenda', 'Bafoussam'],
+        'Canada': ['Toronto', 'Montreal', 'Vancouver', 'Calgary', 'Edmonton', 'Ottawa', 'Quebec City'],
+        'Cape Verde': ['Praia', 'Mindelo', 'Santa Maria', 'Assomada'],
+        'Central African Republic': ['Bangui', 'Berberati', 'Bambari', 'Bouar'],
+        'Chad': ['NDjamena', 'Abeth', 'Moundou', 'Sarh'],
+        'Chile': ['Santiago', 'Valparaiso', 'Concepcion', 'La Serena', 'Valdivia'],
+        'China': ['Beijing', 'Shanghai', 'Guangzhou', 'Shenzhen', 'Chongqing', 'Xian', 'Hangzhou'],
+        'Colombia': ['Bogota', 'Medellin', 'Cali', 'Barranquilla', 'Cartagena'],
+        'Comoros': ['Moroni', 'Mutsamudu', 'Fomboni'],
+        'Congo': ['Brazzaville', 'Pointe-Noire', 'Dolisie', 'Loubomo'],
+        'Costa Rica': ['San Jose', 'Alajuela', 'Cartago', 'Limon', 'Puntarenas'],
+        'Croatia': ['Zagreb', 'Split', 'Rijeka', 'Osijek', 'Zadar', 'Pula'],
+        'Cuba': ['Havana', 'Santiago de Cuba', 'Camaguey', 'Santa Clara', 'Holguin'],
+        'Cyprus': ['Nicosia', 'Limassol', 'Paphos', 'Larnaca', 'Famagusta'],
+        'Czech Republic': ['Prague', 'Brno', 'Ostrava', 'Plzen', 'Liberec', 'Olomouc'],
+        'Czechia': ['Prague', 'Brno', 'Ostrava', 'Plzen', 'Liberec', 'Olomouc'],
+        'Denmark': ['Copenhagen', 'Aarhus', 'Odense', 'Aalborg', 'Esbjerg', 'Randers'],
+        'Djibouti': ['Djibouti City', 'Ali Sabieh', 'Arta', 'Tadjourah'],
+        'Dominica': ['Roseau', 'Portsmouth', 'Scotts Head'],
+        'Dominican Republic': ['Santo Domingo', 'Santiago', 'La Romana', 'San Cristobal'],
+        'East Timor': ['Dili', 'Baucau', 'Maliana', 'Same'],
+        'Ecuador': ['Quito', 'Guayaquil', 'Cuenca', 'Ambato', 'Manta'],
+        'Egypt': ['Cairo', 'Alexandria', 'Giza', 'Aswan', 'Luxor', 'Helwan'],
+        'El Salvador': ['San Salvador', 'Santa Ana', 'San Miguel', 'Sonsonate'],
+        'Equatorial Guinea': ['Malabo', 'Bata', 'Ebebiyin', 'Evinayong'],
+        'Eritrea': ['Asmara', 'Keren', 'Massawa', 'Mendefera'],
+        'Estonia': ['Tallinn', 'Tartu', 'Narva', 'Kohtla-Jarve', 'Parnu', 'Viljandi'],
+        'Ethiopia': ['Addis Ababa', 'Dire Dawa', 'Adama', 'Hawassa', 'Mekelle'],
+        'Fiji': ['Suva', 'Nadi', 'Lautoka', 'Ba', 'Levuka'],
+        'Finland': ['Helsinki', 'Espoo', 'Tampere', 'Vantaa', 'Turku', 'Oulu', 'Jyvaskyla'],
+        'France': ['Paris', 'Marseille', 'Lyon', 'Toulouse', 'Nice', 'Nantes', 'Strasbourg', 'Bordeaux'],
+        'Gabon': ['Libreville', 'Port-Gentil', 'Franceville', 'Oyem'],
+        'Gambia': ['Banjul', 'Serekunda', 'Brikama', 'Lamin'],
+        'Georgia': ['Tbilisi', 'Kutaisi', 'Batumi', 'Zugdidi', 'Telavi'],
+        'Germany': ['Berlin', 'Munich', 'Cologne', 'Frankfurt', 'Hamburg', 'Dresden', 'Dusseldorf'],
+        'Ghana': ['Accra', 'Kumasi', 'Tamale', 'Sekondi-Takoradi', 'Cape Coast'],
+        'Gibraltar': ['Gibraltar'],
+        'Greece': ['Athens', 'Thessaloniki', 'Patras', 'Heraklion', 'Larissa', 'Volos'],
+        'Grenada': ['Saint Georges', 'Sauteurs', 'Gouyave'],
+        'Guatemala': ['Guatemala City', 'Quetzaltenango', 'Escuintla', 'Antigua'],
+        'Guinea': ['Conakry', 'Kindia', 'Mamou', 'Labe'],
+        'Guinea-Bissau': ['Bissau', 'Bafata', 'Gabu', 'Cacheu'],
+        'Guyana': ['Georgetown', 'Linden', 'New Amsterdam', 'Bartica'],
+        'Haiti': ['Port-au-Prince', 'Cap-Haitien', 'Gonaives', 'Jeremie'],
+        'Honduras': ['Tegucigalpa', 'San Pedro Sula', 'La Ceiba', 'Choloma'],
+        'Hong Kong': ['Hong Kong', 'Kowloon', 'New Territories'],
+        'Hungary': ['Budapest', 'Debrecen', 'Szeged', 'Miskolc', 'Pecs', 'Gyor'],
+        'Iceland': ['Reykjavik', 'Hafnarfjordur', 'Kopavogur', 'Akranes'],
+        'India': ['Mumbai', 'Delhi', 'Bangalore', 'Hyderabad', 'Chennai', 'Kolkata', 'Pune'],
+        'Indonesia': ['Jakarta', 'Surabaya', 'Bandung', 'Medan', 'Semarang', 'Makassar'],
+        'Iran': ['Tehran', 'Mashhad', 'Isfahan', 'Shiraz', 'Tabriz', 'Qom'],
+        'Iraq': ['Baghdad', 'Mosul', 'Basra', 'Kirkuk', 'Najaf'],
+        'Ireland': ['Dublin', 'Cork', 'Limerick', 'Galway', 'Waterford', 'Drogheda'],
+        'Israel': ['Jerusalem', 'Tel Aviv', 'Haifa', 'Rishon LeZion', 'Petah Tikva'],
+        'Italy': ['Rome', 'Milan', 'Naples', 'Turin', 'Palermo', 'Genoa', 'Bologna', 'Florence'],
+        'Ivory Coast': ['Yamoussoukro', 'Abidjan', 'Bouake', 'Daloa', 'Korhogo'],
+        'Jamaica': ['Kingston', 'Montego Bay', 'Mandeville', 'Spanish Town'],
+        'Japan': ['Tokyo', 'Yokohama', 'Osaka', 'Nagoya', 'Sapporo', 'Fukuoka', 'Kyoto'],
+        'Jordan': ['Amman', 'Zarqa', 'Irbid', 'Salt', 'Aqaba'],
+        'Kazakhstan': ['Nur-Sultan', 'Almaty', 'Karaganda', 'Shymkent', 'Aktobe'],
+        'Kenya': ['Nairobi', 'Mombasa', 'Kisumu', 'Nakuru', 'Eldoret'],
+        'Kiribati': ['South Tarawa', 'Butaritari', 'Abemama'],
+        'Kosovo': ['Pristina', 'Prizren', 'Ferizaj', 'Gjakove'],
+        'Kuwait': ['Kuwait City', 'Al Jahra', 'Hawalli', 'Salmiya'],
+        'Kyrgyzstan': ['Bishkek', 'Osh', 'Jalal-Abad', 'Kara-Balta'],
+        'Laos': ['Vientiane', 'Luang Prabang', 'Savannakhet', 'Pakse'],
+        'Latvia': ['Riga', 'Daugavpils', 'Liepaja', 'Jelgava', 'Jurmala'],
+        'Lebanon': ['Beirut', 'Tripoli', 'Sidon', 'Tyre', 'Zahle'],
+        'Lesotho': ['Maseru', 'Teyateyaneng', 'Mafeteng', 'Leribe'],
+        'Liberia': ['Monrovia', 'Gbarnga', 'Kakata', 'Buchanan'],
+        'Libya': ['Tripoli', 'Benghazi', 'Misrata', 'Al Khums'],
+        'Liechtenstein': ['Vaduz', 'Schaan', 'Triesen'],
+        'Lithuania': ['Vilnius', 'Kaunas', 'Klaipeda', 'Siauliai', 'Panevezys'],
+        'Luxembourg': ['Luxembourg City', 'Esch-sur-Alzette', 'Differdange'],
+        'Macao': ['Macao'],
+        'Madagascar': ['Antananarivo', 'Antsirabe', 'Fianarantsoa', 'Toliara'],
+        'Malawi': ['Lilongwe', 'Blantyre', 'Mzuzu', 'Zomba'],
+        'Malaysia': ['Kuala Lumpur', 'George Town', 'Penang', 'Johor Bahru', 'Kota Kinabalu'],
+        'Maldives': ['Male', 'Addu City'],
+        'Mali': ['Bamako', 'Kayes', 'Segou', 'Mopti'],
+        'Malta': ['Valletta', 'Birkirkara', 'Mosta', 'Naxxar', 'Sliema'],
+        'Marshall Islands': ['Majuro', 'Ebeye'],
+        'Mauritania': ['Nouakchott', 'Nouadhibou', 'Aioun El Atrouss'],
+        'Mauritius': ['Port Louis', 'Beau Bassin-Rose Hill', 'Vacoas-Phoenix'],
+        'Mexico': ['Mexico City', 'Guadalajara', 'Monterrey', 'Puebla', 'Cancun', 'Veracruz'],
+        'Micronesia': ['Palikir', 'Kolonia', 'Lelu'],
+        'Moldova': ['Chisinau', 'Tiraspol', 'Balti', 'Cahul'],
+        'Monaco': ['Monaco'],
+        'Mongolia': ['Ulaanbaatar', 'Darhan', 'Erdenet', 'Choybalssan'],
+        'Montenegro': ['Podgorica', 'Cetinje', 'Niksic', 'Pljevlja'],
+        'Morocco': ['Casablanca', 'Fez', 'Marrakech', 'Tangier', 'Rabat', 'Meknes'],
+        'Mozambique': ['Maputo', 'Beira', 'Nampula', 'Chimoio'],
+        'Myanmar': ['Yangon', 'Mandalay', 'Naypyidaw', 'Mawlamyine'],
+        'Namibia': ['Windhoek', 'Walvis Bay', 'Swakopmund', 'Oshakati'],
+        'Nauru': ['Yaren'],
+        'Nepal': ['Kathmandu', 'Pokhara', 'Biratnagar', 'Lalitpur'],
+        'Netherlands': ['Amsterdam', 'Rotterdam', 'The Hague', 'Utrecht', 'Eindhoven', 'Groningen'],
+        'New Zealand': ['Auckland', 'Wellington', 'Christchurch', 'Hamilton', 'Tauranga'],
+        'Nicaragua': ['Managua', 'Leon', 'Granada', 'Masaya'],
+        'Niger': ['Niamey', 'Zinder', 'Maradi', 'Agadez'],
+        'Nigeria': ['Lagos', 'Abuja', 'Kano', 'Ibadan', 'Katsina'],
+        'North Korea': ['Pyongyang', 'Nampo', 'Wonsan', 'Hamhung'],
+        'North Macedonia': ['Skopje', 'Bitola', 'Kumanovo', 'Tetovo'],
+        'Norway': ['Oslo', 'Bergen', 'Trondheim', 'Stavanger', 'Kristiansand', 'Drammen'],
+        'Oman': ['Muscat', 'Salalah', 'Sohar', 'Ibri'],
+        'Pakistan': ['Karachi', 'Lahore', 'Islamabad', 'Faisalabad', 'Rawalpindi'],
+        'Palau': ['Ngerulmud', 'Koror'],
+        'Palestine': ['Ramallah', 'Gaza City', 'Bethlehem', 'Jericho'],
+        'Panama': ['Panama City', 'Colon', 'San Miguelito', 'Panama Viejo'],
+        'Papua New Guinea': ['Port Moresby', 'Lae', 'Madang', 'Mount Hagen'],
+        'Paraguay': ['Asuncion', 'Ciudad del Este', 'Encarnacion', 'Villarrica'],
+        'Peru': ['Lima', 'Arequipa', 'Trujillo', 'Chiclayo', 'Cusco'],
+        'Philippines': ['Manila', 'Cebu City', 'Davao', 'Cagayan de Oro', 'Quezon City'],
+        'Poland': ['Warsaw', 'Krakow', 'Lodz', 'Wroclaw', 'Poznan', 'Gdansk'],
+        'Portugal': ['Lisbon', 'Porto', 'Amadora', 'Setubal', 'Braga'],
+        'Puerto Rico': ['San Juan', 'Ponce', 'Mayaguez', 'Caguas'],
+        'Qatar': ['Doha', 'Al Rayyan', 'Umm Salal', 'Al Wakrah'],
+        'Romania': ['Bucharest', 'Cluj-Napoca', 'Timisoara', 'Iasi', 'Constanta'],
+        'Russia': ['Moscow', 'Saint Petersburg', 'Novosibirsk', 'Yekaterinburg', 'Nizhny Novgorod'],
+        'Rwanda': ['Kigali', 'Butare', 'Gitarama', 'Gisenyi'],
+        'Saint Kitts and Nevis': ['Basseterre', 'Charlestown'],
+        'Saint Lucia': ['Castries', 'Soufriere', 'Choiseul'],
+        'Saint Vincent and the Grenadines': ['Kingstown', 'Barrouallie'],
+        'Samoa': ['Apia', 'Savaii'],
+        'San Marino': ['San Marino', 'Borgo Maggiore'],
+        'Sao Tome and Principe': ['Sao Tome', 'Santo Antonio'],
+        'Saudi Arabia': ['Riyadh', 'Jeddah', 'Mecca', 'Medina', 'Dammam'],
+        'Senegal': ['Dakar', 'Thies', 'Saint-Louis', 'Kaolack'],
+        'Serbia': ['Belgrade', 'Nis', 'Novi Sad', 'Zemun', 'Subotica'],
+        'Seychelles': ['Victoria', 'Anse Royale', 'Cascade'],
+        'Sierra Leone': ['Freetown', 'Bo', 'Kenema', 'Makeni'],
+        'Singapore': ['Singapore'],
+        'Slovakia': ['Bratislava', 'Kosice', 'Presov', 'Zilina', 'Banska Bystrica'],
+        'Slovenia': ['Ljubljana', 'Maribor', 'Celje', 'Kranj', 'Novo Mesto'],
+        'Solomon Islands': ['Honiara', 'Gizo', 'Buala'],
+        'Somalia': ['Mogadishu', 'Hargeisa', 'Kismayo', 'Bosaso'],
+        'South Africa': ['Johannesburg', 'Cape Town', 'Durban', 'Pretoria', 'Bloemfontein'],
+        'South Korea': ['Seoul', 'Busan', 'Incheon', 'Daegu', 'Daejeon'],
+        'South Sudan': ['Juba', 'Malakal', 'Bor', 'Wau'],
+        'Spain': ['Madrid', 'Barcelona', 'Valencia', 'Seville', 'Bilbao', 'Malaga'],
+        'Sri Lanka': ['Colombo', 'Kandy', 'Galle', 'Jaffna', 'Anuradhapura'],
+        'Sudan': ['Khartoum', 'Omdurman', 'Port Sudan', 'Kassala'],
+        'Suriname': ['Paramaribo', 'Lelydorp'],
+        'Svalbard and Jan Mayen': ['Longyearbyen', 'Barentsburg'],
+        'Sweden': ['Stockholm', 'Gothenburg', 'Malmo', 'Uppsala', 'Vasteras'],
+        'Switzerland': ['Zurich', 'Bern', 'Geneva', 'Basel', 'Lausanne', 'Lucerne'],
+        'Syria': ['Damascus', 'Aleppo', 'Homs', 'Hama', 'Latakia'],
+        'Taiwan': ['Taipei', 'Kaohsiung', 'Taichung', 'Tainan', 'Keelung'],
+        'Tajikistan': ['Dushanbe', 'Khujand', 'Khorog', 'Qulob'],
+        'Tanzania': ['Dar es Salaam', 'Mwanza', 'Arusha', 'Mbeya'],
+        'Thailand': ['Bangkok', 'Chiang Mai', 'Pattaya', 'Udon Thani', 'Phuket'],
+        'Timor-Leste': ['Dili', 'Baucau', 'Maliana', 'Suai'],
+        'Togo': ['Lome', 'Sokode', 'Kpalime', 'Atakpame'],
+        'Tonga': ['Nuku alofa', 'Vavau'],
+        'Trinidad and Tobago': ['Port of Spain', 'San Fernando', 'Arima'],
+        'Tunisia': ['Tunis', 'Sfax', 'Sousse', 'Kairouan'],
+        'Turkey': ['Istanbul', 'Ankara', 'Izmir', 'Bursa', 'Antalya'],
+        'Turkmenistan': ['Ashgabat', 'Turkmenabat', 'Balkanabat'],
+        'Turks and Caicos Islands': ['Cockburn Town', 'Providenciales'],
+        'Tuvalu': ['Funafuti', 'Nui'],
+        'Uganda': ['Kampala', 'Gulu', 'Lira', 'Mbarara'],
+        'Ukraine': ['Kyiv', 'Kharkiv', 'Odesa', 'Donetsk', 'Zaporizhzhia', 'Lviv'],
+        'United Arab Emirates': ['Dubai', 'Abu Dhabi', 'Sharjah', 'Ajman', 'Ras Al Khaimah'],
+        'United Kingdom': ['London', 'Manchester', 'Birmingham', 'Leeds', 'Glasgow', 'Bristol', 'Edinburgh'],
+        'United States': ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix', 'Philadelphia', 'San Antonio'],
+        'Uruguay': ['Montevideo', 'Salto', 'Paysandu', 'Rivera'],
+        'US Minor Islands': ['Washington DC'],
+        'Uzbekistan': ['Tashkent', 'Samarkand', 'Bukhara', 'Khiva'],
+        'Vanuatu': ['Port Vila', 'Luganville', 'Isangel'],
+        'Vatican City': ['Vatican City'],
+        'Venezuela': ['Caracas', 'Maracaibo', 'Valencia', 'Barquisimeto'],
+        'Vietnam': ['Hanoi', 'Ho Chi Minh City', 'Da Nang', 'Hai Phong'],
+        'Virgin Islands': ['Charlotte Amalie', 'Christiansted'],
+        'Wallis and Futuna': ['Mata-Utu', 'Leava'],
+        'Western Sahara': ['El Aaiun', 'Dakhla'],
+        'Yemen': ['Sanaa', 'Aden', 'Taiz', 'Ibb'],
+        'Zambia': ['Lusaka', 'Ndola', 'Kitwe', 'Livingstone'],
+        'Zimbabwe': ['Harare', 'Bulawayo', 'Chitungwiza', 'Gweru']
+    }
+    
+    cities = country_cities.get(user_country, [])
+
+    return render_template('events_create.html', categories=EVENT_CATEGORIES, cities=cities)
+    
 
 @app.route('/events/<int:event_id>')
 def event_detail(event_id):

@@ -25,7 +25,7 @@
               <div style="flex:1;">
                 {% if notif['type'] == 'follow' %}
                   <div style="font-weight:600; margin-bottom:4px;">
-                    👤 <a href="/profile/{{ notif['actor_id'] }}" style="color:var(--primary-600); text-decoration:none;">{{ notif['actor_username'] }}</a> started following you
+                    👤 <a href="/user/{{ notif['actor_id'] }}" style="color:var(--primary-600); text-decoration:none;">{{ notif['actor_username'] }}</a> started following you
                   </div>
                 {% elif notif['type'] == 'event_created' %}
                   <div style="font-weight:600; margin-bottom:4px;">
@@ -33,7 +33,7 @@
                   </div>
                 {% elif notif['type'] == 'event_joined' %}
                   <div style="font-weight:600; margin-bottom:4px;">
-                    🏍️ <a href="/profile/{{ notif['actor_id'] }}" style="color:var(--primary-600); text-decoration:none;">{{ notif['actor_username'] }}</a> joined <a href="/events/{{ notif['event_id'] }}" style="color:var(--primary-600); text-decoration:none;">{{ notif['event_title'] }}</a>
+                    🏍️ <a href="/user/{{ notif['actor_id'] }}" style="color:var(--primary-600); text-decoration:none;">{{ notif['actor_username'] }}</a> joined <a href="/events/{{ notif['event_id'] }}" style="color:var(--primary-600); text-decoration:none;">{{ notif['event_title'] }}</a>
                   </div>
                 {% else %}
                   <div style="font-weight:600; margin-bottom:4px;">{{ notif['message'] }}</div>

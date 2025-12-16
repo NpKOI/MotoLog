@@ -119,7 +119,7 @@
         {% endif %}
 
         <div style="margin-top:10px; color:var(--muted); font-weight:700;">
-          📍 {{ user['country'] }}
+          📍 {{ user['country'] }}{% if user['city'] %}, {{ user['city'] }}{% endif %}
         </div>
 
         <div class="action-buttons" style="margin-top:14px;">

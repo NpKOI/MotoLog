@@ -131,7 +131,12 @@
           
           <div class="form-group">
             <label for="city">City *</label>
-            <input type="text" id="city" name="city" required placeholder="e.g., Sofia, London, Barcelona">
+            <select id="city" name="city" required>
+              <option value="">-- Select a city --</option>
+              {% for c in cities %}
+                <option value="{{ c }}">{{ c }}</option>
+              {% endfor %}
+            </select>
             <p class="help-text">The city where the event takes place</p>
           </div>
 
