@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="MotoLog Simulator"
+     xmlns="http://www.topografix.com/GPX/1/1">
+  <trk>
+    <name>Simulated Moto Ride</name>
+    <trkseg>
+
+      <trkpt lat="42.697708" lon="23.321868">
+        <ele>560</ele>
+        <time>2025-01-01T10:00:00Z</time>
+      </trkpt>
+
+      <trkpt lat="42.698100" lon="23.323200">
+        <ele>562</ele>
+        <time>2025-01-01T10:01:00Z</time>
+      </trkpt>
+
+      <trkpt lat="42.699500" lon="23.326500">
+        <ele>565</ele>
+        <time>2025-01-01T10:02:30Z</time>
+      </trkpt>
+
+      <trkpt lat="42.701200" lon="23.330800">
+        <ele>570</ele>
+        <time>2025-01-01T10:04:00Z</time>
+      </trkpt>
+
+      <trkpt lat="42.703900" lon="23.335400">
+        <ele>580</ele>
+        <time>2025-01-01T10:06:00Z</time>
+      </trkpt>
+
+      <trkpt lat="42.706800" lon="23.340200">
+        <ele>590</ele>
+        <time>2025-01-01T10:08:00Z</time>
+      </trkpt>
+
+      <trkpt lat="42.709900" lon="23.345900">
+        <ele>600</ele>
+        <time>2025-01-01T10:10:00Z</time>
+      </trkpt>
+
+      <trkpt lat="42.712500" lon="23.350300">
+        <ele>610</ele>
+        <time>2025-01-01T10:12:00Z</time>
+      </trkpt>
+
+      <trkpt lat="42.715300" lon="23.355100">
+        <ele>620</ele>
+        <time>2025-01-01T10:14:00Z</time>
+      </trkpt>
+
+      <trkpt lat="42.717800" lon="23.359600">
+        <ele>630</ele>
+        <time>2025-01-01T10:16:00Z</time>
+      </trkpt>
+
+    </trkseg>
+  </trk>
+</gpx>

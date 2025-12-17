@@ -1296,6 +1296,8 @@ def edit_ride(ride_id):
         flash('Ride not found.', 'error')
         return redirect(url_for('dashboard'))
 
+   
+
     bikes = query_db('SELECT * FROM bikes WHERE user_id = ?', (user_id,))
 
     if request.method == 'POST':
@@ -1593,7 +1595,7 @@ def unread_count():
         last_read_time = last_read['last_read'] if last_read and last_read['last_read'] else '1900-01-01'
         # Exclude system messages (sender_id != 0) and exclude messages sent by current user (sender_id != uid)
         count = query_db('SELECT COUNT(*) as c FROM group_messages WHERE group_id = ? AND sender_id != 0 AND sender_id != ? AND created_at > ?', 
-                        (g['id'], uid, last_read_time), one=True)['c']
+                          (g['id'], uid, last_read_time), one=True)['c']
         group_unread += count
     
     return {'unread_count': user_unread + group_unread}
@@ -1637,9 +1639,10 @@ def add_ride():
             # NOTE: no created_at column in your schema, so do not insert it
             query_db('''
                 INSERT INTO rides
-                (user_id, bike_id, date, distance, time, description, tags, is_private)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (user_id, bike_id, date, distance, time_val, description, tags, is_private))
+                (user_id, bike_id, date, public)
+                VALUES (?, ?, ?, 1)
+            ''', (user_id, bike_id if bike_id else None, datetime.now().isoformat()))
+            
             flash('Ride saved.', 'success')
         except Exception as e:
             flash('Failed to save ride: ' + str(e), 'error')
@@ -2294,7 +2297,7 @@ def event_detail(event_id):
     current_uid = session['user_id']
     is_participant = query_db(
         'SELECT id FROM event_participants WHERE event_id = ? AND user_id = ?',
-        (event_id, current_uid),
+        (event['id'], current_uid),
         one=True
     ) is not None
     
@@ -2588,6 +2591,409 @@ def my_events():
     
     return render_template('my_events.html', events=events, tab=tab, event_type=event_type)
 
+# ======== RIDE HISTORY ========
+
+@app.route('/ride-history')
+def ride_history():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    user_id = session['user_id']
+    
+    # Get all rides for this user ordered by date descending
+    rides = query_db(
+        '''SELECT id, title, description, date, distance, time, avg_speed, top_speed, public, bike_id
+           FROM rides 
+           WHERE user_id = ? 
+           ORDER BY date DESC''',
+        (user_id,)
+    )
+    
+    # Enrich rides with bike names
+    for ride in rides:
+        if ride['bike_id']:
+            bike = query_db('SELECT name FROM bikes WHERE id = ?', (ride['bike_id'],), one=True)
+            ride['bike_name'] = bike['name'] if bike else 'Unknown Bike'
+        else:
+            ride['bike_name'] = 'No Bike'
+    
+    return render_template('ride_history.html', rides=rides)
+
+@app.route('/api/ride/toggle-public', methods=['POST'])
+def toggle_ride_public():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    user_id = session['user_id']
+    data = request.json or {}
+    ride_id = data.get('ride_id')
+    
+    if not ride_id:
+        return jsonify({'error': 'No ride_id provided'}), 400
+    
+    # Get current public status
+    ride = query_db('SELECT public, user_id FROM rides WHERE id = ?', (ride_id,), one=True)
+    if not ride:
+        return jsonify({'error': 'Ride not found'}), 404
+    
+    # Verify ownership
+    if ride['user_id'] != user_id:
+        return jsonify({'error': 'You do not own this ride'}), 403
+    
+    # Toggle public status
+    new_public = 0 if ride['public'] else 1
+    query_db('UPDATE rides SET public = ? WHERE id = ?', (new_public, ride_id))
+    
+    return jsonify({
+        'success': True,
+        'public': bool(new_public),
+        'message': 'Ride is now ' + ('public' if new_public else 'private')
+    })
+
+@app.route('/api/ride/delete', methods=['POST'])
+def api_delete_ride():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    user_id = session['user_id']
+    data = request.json or {}
+    ride_id = data.get('ride_id')
+    
+    if not ride_id:
+        return jsonify({'error': 'No ride_id provided'}), 400
+    
+    # Get ride and verify ownership
+    ride = query_db('SELECT user_id FROM rides WHERE id = ?', (ride_id,), one=True)
+    if not ride:
+        return jsonify({'error': 'Ride not found'}), 404
+    
+    if ride['user_id'] != user_id:
+        return jsonify({'error': 'You do not own this ride'}), 403
+    
+    # Delete GPS points first
+    query_db('DELETE FROM gps_points WHERE ride_id = ?', (ride_id,))
+    
+    # Delete ride
+    query_db('DELETE FROM rides WHERE id = ?', (ride_id,))
+    
+    return jsonify({
+        'success': True,
+        'message': 'Ride deleted successfully'
+    })
+
+# ======== GPS RIDE TRACKING SYSTEM ========
+
+@app.route('/track-ride')
+def track_ride():
+    """GPS ride tracking page"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    # Get user's bikes for selection (use existing schema columns `name` and `make_model`)
+    user_id = session['user_id']
+    bikes = query_db('SELECT id, name, make_model FROM bikes WHERE user_id = ? ORDER BY name, make_model', (user_id,))
+    
+    return render_template('track_ride.html', bikes=bikes, mapbox_key=os.environ.get('MAPBOX_KEY', ''))
+
+@app.route('/api/ride/start', methods=['POST'])
+def api_ride_start():
+    """Start a new ride"""
+    print("🟢 /api/ride/start endpoint called")
+    
+    if 'user_id' not in session:
+        print("❌ Not logged in")
+        return jsonify({'success': False, 'error': 'Not logged in'}), 401
+    
+    data = request.get_json()
+    user_id = session['user_id']
+    bike_id = data.get('bike_id') if data else None
+    
+    print(f"📋 Request data: {data}")
+    print(f"👤 User ID: {user_id}, 🚲 Bike ID: {bike_id}")
+    
+    try:
+        # Create rides table if needed
+        query_db('''
+            CREATE TABLE IF NOT EXISTS rides (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                bike_id INTEGER,
+                title TEXT,
+                description TEXT,
+                date TEXT,
+                distance REAL,
+                time INTEGER,
+                avg_speed REAL,
+                top_speed REAL,
+                tags TEXT,
+                public BOOLEAN DEFAULT 1,
+                FOREIGN KEY (user_id) REFERENCES users(id),
+                FOREIGN KEY (bike_id) REFERENCES bikes(id)
+            )
+        ''')
+        
+        # Create gps_points table if needed
+        query_db('''
+            CREATE TABLE IF NOT EXISTS gps_points (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                ride_id INTEGER NOT NULL,
+                latitude REAL,
+                longitude REAL,
+                speed REAL,
+                altitude REAL,
+                timestamp INTEGER,
+                FOREIGN KEY (ride_id) REFERENCES rides(id)
+            )
+        ''')
+        
+        # Insert new ride and get the ID in the same connection
+        import time
+        max_retries = 3
+        retry_delay = 0.5
+        ride_id = None
+        
+        for attempt in range(max_retries):
+            try:
+                conn = sqlite3.connect('moto_log.db', timeout=10.0)
+                conn.row_factory = sqlite3.Row
+                conn.execute('PRAGMA journal_mode=WAL')
+                conn.execute('PRAGMA foreign_keys = ON')
+                cur = conn.cursor()
+                
+                # Insert and get ID in same connection
+                cur.execute('''
+                    INSERT INTO rides (user_id, bike_id, date, distance, time)
+                    VALUES (?, ?, ?, 0, 0)
+                ''', (user_id, bike_id if bike_id else None, datetime.now().isoformat()))
+                
+                # Get the last inserted ride ID immediately in same connection
+                cur.execute('SELECT last_insert_rowid() as id')
+                result = cur.fetchone()
+                ride_id = result['id'] if result else None
+                
+                conn.commit()
+                conn.close()
+                
+                print(f"✅ Ride created with ID: {ride_id} (type: {type(ride_id).__name__})")
+                break
+                
+            except sqlite3.OperationalError as e:
+                if attempt < max_retries - 1:
+                    time.sleep(retry_delay)
+                    retry_delay *= 2
+                else:
+                    raise
+        
+        if not ride_id or ride_id == 0:
+            print(f"❌ ERROR: ride_id is invalid: {ride_id}")
+            raise Exception(f"Failed to get ride ID after insert. Got: {ride_id}")
+        
+        return jsonify({'success': True, 'ride_id': ride_id})
+    except Exception as e:
+        print(f"❌ Error starting ride: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/ride/add-gps-point', methods=['POST'])
+def api_add_gps_point():
+    """Add a GPS point to the current ride"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not logged in'}), 401
+    
+    data = request.get_json()
+    ride_id = data.get('ride_id')
+    latitude = data.get('latitude')
+    longitude = data.get('longitude')
+    speed = data.get('speed', 0)
+    altitude = data.get('altitude')
+    timestamp = data.get('timestamp', int(datetime.now().timestamp()))
+    
+    try:
+        query_db('''
+            INSERT INTO gps_points (ride_id, latitude, longitude, speed, altitude, timestamp)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (ride_id, latitude, longitude, speed, altitude, timestamp))
+        
+        return jsonify({'success': True})
+    except Exception as e:
+        print(f"Error adding GPS point: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/ride/stop', methods=['POST'])
+def api_ride_stop():
+    """Stop the current ride and calculate stats"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not logged in'}), 401
+    
+    data = request.get_json()
+    ride_id = data.get('ride_id')
+    title = data.get('title', 'My Ride')
+    description = data.get('description', '')
+    is_public = data.get('public', 1)
+    
+    try:
+        # Ensure rides table has all required columns (migration)
+        try:
+            query_db('PRAGMA table_info(rides)', ())
+            # Check if title column exists by trying to query it
+            query_db('SELECT title FROM rides LIMIT 1', ())
+        except:
+            pass
+        
+        # Add missing columns if they don't exist
+        columns_to_add = {
+            'title': 'TEXT DEFAULT "My Ride"',
+            'description': 'TEXT DEFAULT ""',
+            'public': 'INTEGER DEFAULT 1'
+        }
+        
+        for col_name, col_def in columns_to_add.items():
+            try:
+                query_db(f'ALTER TABLE rides ADD COLUMN {col_name} {col_def}', ())
+                print(f'✅ Added column {col_name} to rides table')
+            except Exception as e:
+                # Column likely already exists
+                if 'duplicate column' not in str(e).lower() and 'already exists' not in str(e).lower():
+                    print(f'⚠️ Warning adding column {col_name}: {e}')
+        
+        # Get all GPS points for this ride
+        points = query_db('''
+            SELECT latitude, longitude, speed, timestamp
+            FROM gps_points
+            WHERE ride_id = ?
+            ORDER BY timestamp ASC
+        ''', (ride_id,))
+        
+        if len(points) < 2:
+            return jsonify({'error': 'Not enough GPS points to calculate stats'}), 400
+        
+        # Calculate statistics
+        stats = calculate_ride_stats(points)
+        
+        # Update ride with calculated stats
+        query_db('''
+            UPDATE rides
+            SET title = ?, description = ?, distance = ?, time = ?, 
+                avg_speed = ?, top_speed = ?, public = ?
+            WHERE id = ?
+        ''', (title, description, stats['distance'], stats['time'], 
+              stats['avg_speed'], stats['top_speed'], is_public, ride_id))
+        
+        return jsonify({
+            'success': True,
+            'ride_id': ride_id,
+            'stats': stats
+        })
+    except Exception as e:
+        print(f"Error stopping ride: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/ride/upload-gpx', methods=['POST'])
+def api_upload_gpx():
+    """Upload and parse a GPX file to simulate a ride"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not logged in'}), 401
+    
+    try:
+        if 'gpx_file' not in request.files:
+            return jsonify({'error': 'No GPX file provided'}), 400
+        
+        file = request.files['gpx_file']
+        if not file.filename.endswith('.gpx'):
+            return jsonify({'error': 'File must be a GPX file'}), 400
+        
+        # Parse GPX file
+        import xml.etree.ElementTree as ET
+        gpx_content = file.read().decode('utf-8')
+        root = ET.fromstring(gpx_content)
+        
+        # Extract namespace
+        ns = {'gpx': 'http://www.topografix.com/GPX/1/1'}
+        
+        points = []
+        for trkpt in root.findall('.//gpx:trkpt', ns):
+            lat = float(trkpt.get('lat'))
+            lon = float(trkpt.get('lon'))
+            ele_elem = trkpt.find('gpx:ele', ns)
+            ele = float(ele_elem.text) if ele_elem is not None else None
+            time_elem = trkpt.find('gpx:time', ns)
+            time_str = time_elem.text if time_elem is not None else None
+            
+            points.append({
+                'lat': lat,
+                'lon': lon,
+                'ele': ele,
+                'time': time_str
+            })
+        
+        if not points:
+            return jsonify({'error': 'No trackpoints found in GPX file'}), 400
+        
+        return jsonify({
+            'success': True,
+            'points': points,
+            'count': len(points)
+        })
+    except Exception as e:
+        print(f"Error uploading GPX: {e}")
+        return jsonify({'error': str(e)}), 500
+
+def calculate_ride_stats(gps_points):
+    """Calculate ride statistics from GPS points"""
+    from math import radians, sin, cos, sqrt, atan2
+    
+    def haversine(lat1, lon1, lat2, lon2):
+        """Calculate distance between two GPS coordinates in kilometers"""
+        R = 6371  # Earth radius in km
+        lat1_rad = radians(lat1)
+        lat2_rad = radians(lat2)
+        delta_lat = radians(lat2 - lat1)
+        delta_lon = radians(lon2 - lon1)
+        
+        a = sin(delta_lat/2)**2 + cos(lat1_rad) * cos(lat2_rad) * sin(delta_lon/2)**2
+        c = 2 * atan2(sqrt(a), sqrt(1-a))
+        return R * c * 1000  # Return in meters
+    
+    total_distance = 0  # in meters
+    top_speed = 0
+    speeds = []
+    
+    for i in range(len(gps_points) - 1):
+        current = gps_points[i]
+        next_point = gps_points[i + 1]
+        
+        # Calculate distance
+        dist = haversine(current['latitude'], current['longitude'],
+                         next_point['latitude'], next_point['longitude'])
+        total_distance += dist
+        
+        # Track speeds
+        speed = current['speed'] if current['speed'] else 0
+        speeds.append(speed)
+        if speed > top_speed:
+            top_speed = speed
+    
+    # Calculate time in seconds
+    if len(gps_points) >= 2:
+        first_time = gps_points[0]['timestamp']
+        last_time = gps_points[-1]['timestamp']
+        total_time = max(1, last_time - first_time)  # Avoid division by zero
+    else:
+        total_time = 1
+    
+    # Calculate average speed (km/h)
+    distance_km = total_distance / 1000
+    time_hours = total_time / 3600
+    avg_speed = distance_km / time_hours if time_hours > 0 else 0
+    
+    return {
+        'distance': round(distance_km, 2),
+        'time': total_time,
+        'top_speed': round(top_speed, 2),
+        'avg_speed': round(avg_speed, 2)
+    }
+
+
 if __name__ == '__main__':
-    # NOTE: use debug=True for local development; remove or set False in production.
     app.run(debug=True, host='127.0.0.1', port=5000)
