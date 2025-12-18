@@ -2609,15 +2609,27 @@ def ride_history():
         (user_id,)
     )
     
-    # Enrich rides with bike names
-    for ride in rides:
-        if ride['bike_id']:
-            bike = query_db('SELECT name FROM bikes WHERE id = ?', (ride['bike_id'],), one=True)
-            ride['bike_name'] = bike['name'] if bike else 'Unknown Bike'
-        else:
-            ride['bike_name'] = 'No Bike'
+    # Convert Row objects to dicts and enrich with bike names
+    rides_list = []
+    total_distance = 0
+    shared_count = 0
     
-    return render_template('ride_history.html', rides=rides)
+    for ride in rides:
+        ride_dict = dict(ride)  # Convert sqlite3.Row to dict
+        if ride_dict['bike_id']:
+            bike = query_db('SELECT name FROM bikes WHERE id = ?', (ride_dict['bike_id'],), one=True)
+            ride_dict['bike_name'] = bike['name'] if bike else 'Unknown Bike'
+        else:
+            ride_dict['bike_name'] = 'No Bike'
+        rides_list.append(ride_dict)
+        
+        # Calculate totals
+        if ride_dict['distance']:
+            total_distance += ride_dict['distance']
+        if ride_dict['public']:
+            shared_count += 1
+    
+    return render_template('ride_history.html', rides_list=rides_list, total_distance=total_distance, shared_count=shared_count)
 
 @app.route('/api/ride/toggle-public', methods=['POST'])
 def toggle_ride_public():

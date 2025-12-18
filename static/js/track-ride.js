@@ -444,7 +444,7 @@ function stopRide() {
   }
   
   // Update modal with current stats
-  document.getElementById('modalDistance').textContent = (totalDistance / 1000).toFixed(2) + ' km';
+  document.getElementById('modalDistance').textContent = totalDistance.toFixed(2) + ' km';
   document.getElementById('modalTime').textContent = formatTime(Math.floor((Date.now() - rideStartTime) / 1000));
   document.getElementById('modalAvgSpeed').textContent = (avgSpeed || 0).toFixed(1) + ' km/h';
   document.getElementById('modalTopSpeed').textContent = (topSpeed || 0).toFixed(1) + ' km/h';
@@ -470,14 +470,17 @@ function submitStopForm(event) {
   const title = document.getElementById('rideTitle').value || 'My Ride';
   const description = document.getElementById('rideDescription').value || '';
   const isPublic = document.getElementById('ridePublic').checked;
+  const saveBtn = document.getElementById('saveRideBtn');
   
   if (!title.trim()) {
     showToast('Please enter a ride title', 'warning');
     return false;
   }
   
-  document.getElementById('stopBtn').disabled = true;
-  document.getElementById('status').textContent = '⏳ Saving...';
+  // Disable button and show loading state
+  saveBtn.disabled = true;
+  saveBtn.classList.add('loading');
+  saveBtn.textContent = 'Saving...';
   
   // Send stop request
   console.log('📤 Sending stop request for ride:', currentRideId);
@@ -507,7 +510,7 @@ function submitStopForm(event) {
     // Reset UI
     showToast('Ride saved successfully! 🎉', 'success');
     document.getElementById('status').textContent = '✅ Ride finished: ' + title;
-    document.getElementById('stopBtn').disabled = false;
+    document.getElementById('stopBtn').disabled = true;
     document.getElementById('stopBtn').textContent = 'Stop Ride';
     document.getElementById('startBtn').disabled = false;
     document.getElementById('startBtn').textContent = 'Start Ride';
@@ -521,18 +524,23 @@ function submitStopForm(event) {
     totalDistance = 0;
     avgSpeed = 0;
     topSpeed = 0;
-    localStorage.removeItem('rideState');
+    localStorage.removeItem('motoLog_rideState');
     
-    // Reload page in 2 seconds
-    setTimeout(() => {
-      location.reload();
-    }, 2000);
+    // Reset form and button
+    document.getElementById('stopForm').reset();
+    saveBtn.disabled = false;
+    saveBtn.classList.remove('loading');
+    saveBtn.textContent = 'Save Ride';
   })
   .catch(e => {
     console.error('❌ Error stopping ride:', e);
     showToast('Error saving ride: ' + e.message, 'error');
-    document.getElementById('stopBtn').disabled = false;
     document.getElementById('status').textContent = '❌ Error: ' + e.message;
+    
+    // Re-enable button on error
+    saveBtn.disabled = false;
+    saveBtn.classList.remove('loading');
+    saveBtn.textContent = 'Save Ride';
   });
   
   return false;
@@ -776,13 +784,22 @@ window.addEventListener('DOMContentLoaded', () => {
   restoreState();
   initMap();
   
-  // Update UI based on restored state
-  if (currentRideId && isRecording) {
+  // Update UI based on restored state - but only if there's actually a recording happening
+  // Check if currentRideId is valid (> 0) and isRecording is true
+  if (currentRideId && currentRideId > 0 && isRecording) {
     console.log('🔄 Page reloaded with active ride. Restoring UI...');
     document.getElementById('status').textContent = '🔴 Recording...';
     document.getElementById('status').className = 'track-status status-recording';
     document.getElementById('startBtn').disabled = true;
     document.getElementById('stopBtn').disabled = false;
     document.getElementById('bikeSelect').disabled = true;
+  } else {
+    // Clear any stale state
+    clearState();
+    document.getElementById('status').textContent = '⏸️ Ready to track';
+    document.getElementById('status').className = 'track-status status-idle';
+    document.getElementById('startBtn').disabled = false;
+    document.getElementById('stopBtn').disabled = true;
+    document.getElementById('bikeSelect').disabled = false;
   }
 });
