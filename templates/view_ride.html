@@ -89,6 +89,26 @@
       transform: translateY(-1px);
       box-shadow: var(--shadow-2);
     }
+    .map-toggle {
+      padding: 6px 12px;
+      border: none;
+      background: var(--n-100);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--fast) var(--ease);
+    }
+    .map-toggle.active {
+      background: var(--primary-500);
+      color: white;
+    }
+    .map-toggle:hover {
+      background: var(--n-200);
+    }
+    .map-toggle.active:hover {
+      background: var(--primary-600);
+    }
   </style>
 </head>
 <body>
@@ -157,8 +177,26 @@
         {% endif %}
         
         {% if gps_points %}
-        <h3 style="color: var(--text); margin-bottom: var(--space-md);">Ride Route</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md);">
+          <h3 style="color: var(--text); margin: 0;">Ride Route</h3>
+          <div style="display: flex; gap: var(--space-sm); align-items: center;">
+            <label style="font-size: 14px; color: var(--muted);">View:</label>
+            <div style="display: flex; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--n-300);">
+              <button id="route-view" class="map-toggle active" onclick="setMapView('route')">Route</button>
+              <button id="speed-view" class="map-toggle" onclick="setMapView('speed')">Speed Heat Map</button>
+            </div>
+          </div>
+        </div>
         <div id="map"></div>
+        
+        <!-- Speed Legend -->
+        <div id="speed-legend" style="display: none; margin-top: var(--space-sm); padding: var(--space-sm); background: var(--card-bg); border-radius: var(--radius-md); box-shadow: var(--shadow-1);">
+          <div style="font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: var(--space-sm);">Speed Legend (km/h)</div>
+          <div style="display: flex; align-items: center; gap: var(--space-sm);">
+            <div style="width: 20px; height: 20px; background: linear-gradient(90deg, #0000ff 0%, #00ff00 25%, #ffff00 50%, #ff8000 75%, #ff0000 100%); border-radius: 2px;"></div>
+            <div style="font-size: 12px; color: var(--muted);">Slow ← Fast</div>
+          </div>
+        </div>
         {% endif %}
         
         <div class="action-buttons">
@@ -173,34 +211,143 @@
 
   {% if gps_points %}
   <script>
-    // Initialize map
-    const map = L.map('map').setView([{{ gps_points[0].latitude }}, {{ gps_points[0].longitude }}], 13);
-    
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
-    
-    // Add route polyline
-    const routeCoords = [
+    // Store GPS points with speed data
+    const gpsData = [
       {% for point in gps_points %}
-      [{{ point.latitude }}, {{ point.longitude }}]{% if not loop.last %},{% endif %}
+      {lat: {{ point.latitude }}, lng: {{ point.longitude }}, speed: {{ point.speed or 0 }}, timestamp: {{ point.timestamp or 0 }}}{% if not loop.last %},{% endif %}
       {% endfor %}
     ];
     
-    const route = L.polyline(routeCoords, {
-      color: 'var(--primary-500)',
-      weight: 4,
-      opacity: 0.8
-    }).addTo(map);
+    let map;
+    let routeLayer;
+    let speedLayer;
+    let startMarker;
+    let endMarker;
+    let currentView = 'route';
     
-    // Fit map to route bounds
-    map.fitBounds(route.getBounds());
-    
-    // Add start and end markers
-    if (routeCoords.length > 0) {
-      L.marker(routeCoords[0]).addTo(map).bindPopup('Start');
-      L.marker(routeCoords[routeCoords.length - 1]).addTo(map).bindPopup('End');
+    // Initialize map
+    function initMap() {
+      map = L.map('map').setView([gpsData[0].lat, gpsData[0].lng], 13);
+      
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
+      
+      // Add start and end markers
+      if (gpsData.length > 0) {
+        startMarker = L.marker([gpsData[0].lat, gpsData[0].lng]).addTo(map).bindPopup('Start');
+        endMarker = L.marker([gpsData[gpsData.length - 1].lat, gpsData[gpsData.length - 1].lng]).addTo(map).bindPopup('End');
+      }
+      
+      // Show initial route view
+      showRouteView();
     }
+    
+    // Show regular route view
+    function showRouteView() {
+      // Clear existing layers
+      if (speedLayer) map.removeLayer(speedLayer);
+      if (routeLayer) map.removeLayer(routeLayer);
+      
+      // Create route polyline
+      const routeCoords = gpsData.map(point => [point.lat, point.lng]);
+      routeLayer = L.polyline(routeCoords, {
+        color: 'var(--primary-500)',
+        weight: 4,
+        opacity: 0.8
+      }).addTo(map);
+      
+      // Fit map to route bounds
+      if (routeCoords.length > 1) {
+        map.fitBounds(routeCoords);
+      }
+      
+      // Hide speed legend
+      document.getElementById('speed-legend').style.display = 'none';
+    }
+    
+    // Show speed heat map view
+    function showSpeedView() {
+      // Clear existing layers
+      if (speedLayer) map.removeLayer(speedLayer);
+      if (routeLayer) map.removeLayer(routeLayer);
+      
+      // Calculate speed ranges for color coding
+      const speeds = gpsData.map(point => point.speed || 0).filter(speed => speed > 0);
+      const minSpeed = Math.min(...speeds);
+      const maxSpeed = Math.max(...speeds);
+      
+      // Create colored segments based on speed
+      const segments = [];
+      for (let i = 0; i < gpsData.length - 1; i++) {
+        const point1 = gpsData[i];
+        const point2 = gpsData[i + 1];
+        const speed = (point1.speed + point2.speed) / 2; // Average speed between points
+        
+        // Calculate color based on speed (blue = slow, red = fast)
+        const color = getSpeedColor(speed, minSpeed, maxSpeed);
+        
+        segments.push({
+          coords: [[point1.lat, point1.lng], [point2.lat, point2.lng]],
+          color: color,
+          speed: speed
+        });
+      }
+      
+      // Add segments to map
+      speedLayer = L.layerGroup();
+      segments.forEach(segment => {
+        L.polyline(segment.coords, {
+          color: segment.color,
+          weight: 6,
+          opacity: 0.8
+        }).addTo(speedLayer).bindPopup(`Speed: ${segment.speed.toFixed(1)} km/h`);
+      });
+      
+      speedLayer.addTo(map);
+      
+      // Fit map to route bounds
+      const allCoords = gpsData.map(point => [point.lat, point.lng]);
+      if (allCoords.length > 1) {
+        map.fitBounds(allCoords);
+      }
+      
+      // Show speed legend
+      document.getElementById('speed-legend').style.display = 'block';
+    }
+    
+    // Get color based on speed (blue to red gradient)
+    function getSpeedColor(speed, minSpeed, maxSpeed) {
+      if (maxSpeed === minSpeed) return '#3b82f6'; // Default blue if all speeds are the same
+      
+      const ratio = (speed - minSpeed) / (maxSpeed - minSpeed);
+      
+      // Blue to red gradient
+      const r = Math.round(255 * ratio);
+      const g = Math.round(255 * (1 - ratio));
+      const b = Math.round(255 * (1 - ratio));
+      
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+    
+    // Set map view (route or speed)
+    function setMapView(viewType) {
+      currentView = viewType;
+      
+      // Update toggle buttons
+      document.getElementById('route-view').classList.toggle('active', viewType === 'route');
+      document.getElementById('speed-view').classList.toggle('active', viewType === 'speed');
+      
+      // Show appropriate view
+      if (viewType === 'route') {
+        showRouteView();
+      } else {
+        showSpeedView();
+      }
+    }
+    
+    // Initialize map when page loads
+    document.addEventListener('DOMContentLoaded', initMap);
   </script>
   {% endif %}
 </body>

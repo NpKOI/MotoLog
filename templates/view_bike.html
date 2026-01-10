@@ -302,6 +302,11 @@
       const mapElement = document.getElementById('map-preview-' + rideId);
       if (!mapElement || !gpsPoints || gpsPoints.length < 2) return;
       
+      // Ensure container has proper dimensions
+      mapElement.style.width = '100%';
+      mapElement.style.height = '80px';
+      mapElement.style.position = 'relative';
+      
       // Validate GPS points
       const validPoints = gpsPoints.filter(point => 
         point && typeof point.latitude === 'number' && typeof point.longitude === 'number' &&
@@ -314,36 +319,60 @@
         return;
       }
       
-      // Create small map
-      const map = L.map(mapElement, {
-        zoomControl: false,
-        attributionControl: false,
-        scrollWheelZoom: false,
-        dragging: false,
-        touchZoom: false,
-        doubleClickZoom: false,
-        boxZoom: false,
-        preferCanvas: true
-      }).setView([validPoints[0].latitude, validPoints[0].longitude], 13);
-      
-      // Add tile layer - use a reliable tile provider
-      const tileLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-        maxZoom: 18,
-        minZoom: 1
-      }).addTo(map);
-      
-      // Add route polyline
-      const routeCoords = validPoints.map(point => [point.latitude, point.longitude]);
-      L.polyline(routeCoords, {
-        color: 'var(--primary-500)',
-        weight: 3,
-        opacity: 0.8
-      }).addTo(map);
-      
-      // Fit map to route bounds
-      if (routeCoords.length > 1) {
-        map.fitBounds(routeCoords);
+      try {
+        // Create small map with error handling
+        const map = L.map(mapElement, {
+          zoomControl: false,
+          attributionControl: false,
+          scrollWheelZoom: false,
+          dragging: false,
+          touchZoom: false,
+          doubleClickZoom: false,
+          boxZoom: false,
+          preferCanvas: true
+        }).setView([validPoints[0].latitude, validPoints[0].longitude], 13);
+        
+        // Add tile layer with fallback
+        const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap contributors',
+          maxZoom: 18,
+          minZoom: 1,
+          errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==' // Transparent pixel as fallback
+        }).addTo(map);
+        
+        // Handle tile load errors
+        tileLayer.on('tileerror', function(e) {
+          console.warn('Tile load error, trying alternative provider');
+          // Try alternative tile provider
+          map.removeLayer(tileLayer);
+          L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012',
+            maxZoom: 18,
+            minZoom: 1
+          }).addTo(map);
+        });
+        
+        // Add route polyline
+        const routeCoords = validPoints.map(point => [point.latitude, point.longitude]);
+        L.polyline(routeCoords, {
+          color: 'var(--primary-500)',
+          weight: 3,
+          opacity: 0.8
+        }).addTo(map);
+        
+        // Fit map to route bounds with padding
+        if (routeCoords.length > 1) {
+          map.fitBounds(routeCoords, {padding: [5, 5]});
+        }
+        
+        // Force map to resize after a short delay to ensure proper rendering
+        setTimeout(() => {
+          map.invalidateSize();
+        }, 100);
+        
+      } catch (error) {
+        console.error('Error initializing map preview:', error);
+        mapElement.innerHTML = '<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 10px;">Map error</div>';
       }
     }
   </script>

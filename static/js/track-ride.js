@@ -732,7 +732,9 @@ function simulateGPXRide(gpxPoints) {
     }
     
     const point = gpxPoints[pointIndex];
-    const timestamp = Math.floor(Date.now() / 1000) + pointIndex;
+    // Use the processed speed and timestamp from the API
+    const speed = point.speed || 25 + Math.random() * 15;
+    const timestamp = point.timestamp || Math.floor(Date.now() / 1000) + pointIndex;
     
     fetch('/api/ride/add-gps-point', {
       method: 'POST',
@@ -741,7 +743,7 @@ function simulateGPXRide(gpxPoints) {
         ride_id: currentRideId,
         latitude: point.lat,
         longitude: point.lon,
-        speed: 25 + Math.random() * 15,  // Simulate 25-40 km/h
+        speed: speed,
         altitude: point.ele || 0,
         timestamp: timestamp
       })
@@ -753,7 +755,7 @@ function simulateGPXRide(gpxPoints) {
         ridePoints.push({
           latitude: point.lat,
           longitude: point.lon,
-          speed: 30,
+          speed: speed,
           timestamp: timestamp
         });
         

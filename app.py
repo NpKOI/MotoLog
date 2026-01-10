@@ -10,6 +10,9 @@ import time
 app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET', 'dev_secret')
 
+# OSRM Configuration
+OSRM_URL = os.environ.get('OSRM_URL', 'http://localhost:5000')
+
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
 ALLOWED_EXT = {'png','jpg','jpeg','gif'}
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -2772,7 +2775,7 @@ def view_ride(ride_id):
     
     # Get GPS points for the map
     gps_points = query_db(
-        'SELECT latitude, longitude, timestamp FROM gps_points WHERE ride_id = ? ORDER BY timestamp',
+        'SELECT latitude, longitude, timestamp, speed FROM gps_points WHERE ride_id = ? ORDER BY timestamp',
         (ride_id,)
     )
     gps_list = [dict(point) for point in gps_points] if gps_points else []
@@ -3142,24 +3145,191 @@ def api_upload_gpx():
             time_elem = trkpt.find('gpx:time', ns)
             time_str = time_elem.text if time_elem is not None else None
             
+            # Parse timestamp if available
+            timestamp = None
+            if time_str:
+                try:
+                    # GPX timestamps are typically in ISO format like "2023-12-29T10:30:45Z" or "2023-12-29T10:30:45.000Z"
+                    # Try different formats
+                    for fmt in ['%Y-%m-%dT%H:%M:%SZ', '%Y-%m-%dT%H:%M:%S.%fZ', '%Y-%m-%dT%H:%M:%S']:
+                        try:
+                            from datetime import datetime
+                            dt = datetime.strptime(time_str.replace('Z', ''), fmt)
+                            timestamp = int(dt.timestamp())
+                            break
+                        except ValueError:
+                            continue
+                    
+                    # If still no timestamp, try fromisoformat
+                    if timestamp is None:
+                        try:
+                            dt = datetime.fromisoformat(time_str.replace('Z', '+00:00'))
+                            timestamp = int(dt.timestamp())
+                        except:
+                            pass
+                            
+                except Exception as e:
+                    print(f"Failed to parse timestamp '{time_str}': {e}")
+                    timestamp = None
+            
             points.append({
                 'lat': lat,
                 'lon': lon,
                 'ele': ele,
-                'time': time_str
+                'time': time_str,
+                'timestamp': timestamp
             })
         
         if not points:
             return jsonify({'error': 'No trackpoints found in GPX file'}), 400
         
+        # Step 1: Snap points to roads (if OSRM is available)
+        try:
+            snapped_points = snap_to_roads(points)
+            if len(snapped_points) < len(points) * 0.8:  # If we lost too many points, use original
+                print("Road snapping lost too many points, using original points")
+                snapped_points = points
+        except Exception as e:
+            print(f"Road snapping failed, using original points: {e}")
+            snapped_points = points
+        
+        # Step 2: Apply speed profile and timing
+        enhanced_points = apply_speed_profile(snapped_points)
+        
+        # Step 3: Calculate statistics
+        stats = calculate_ride_stats(enhanced_points)
+        
         return jsonify({
             'success': True,
-            'points': points,
-            'count': len(points)
+            'points': enhanced_points,
+            'stats': stats,
+            'count': len(enhanced_points)
         })
     except Exception as e:
         print(f"Error uploading GPX: {e}")
         return jsonify({'error': str(e)}), 500
+
+def snap_to_roads(gps_points, osrm_url=None):
+    """
+    Snap GPS points to roads using OSRM match service.
+    Returns snapped coordinates with road information.
+    """
+    if osrm_url is None:
+        osrm_url = OSRM_URL
+    if not gps_points:
+        return []
+    
+    # Prepare coordinates for OSRM match request
+    coordinates = ';'.join([f"{point['lon']},{point['lat']}" for point in gps_points])
+    
+    # OSRM match URL
+    match_url = f"{osrm_url}/match/v1/driving/{coordinates}"
+    params = {
+        'overview': 'full',
+        'geometries': 'geojson',
+        'steps': 'true',
+        'annotations': 'true'
+    }
+    
+    try:
+        # Make request to OSRM
+        url_with_params = match_url + '?' + urllib.parse.urlencode(params)
+        with urllib.request.urlopen(url_with_params) as response:
+            data = json.loads(response.read().decode())
+        
+        if data.get('code') != 'Ok':
+            print(f"OSRM match failed: {data.get('message', 'Unknown error')}")
+            return gps_points  # Fallback to original points
+        
+        # Extract matched points
+        snapped_points = []
+        for match in data.get('matchings', []):
+            geometry = match.get('geometry', {})
+            coordinates = geometry.get('coordinates', [])
+            
+            # OSRM returns [lon, lat], convert to [lat, lon]
+            for coord in coordinates:
+                snapped_points.append({
+                    'lat': coord[1],
+                    'lon': coord[0],
+                    'snapped': True
+                })
+        
+        return snapped_points if snapped_points else gps_points
+    
+    except Exception as e:
+        print(f"Error snapping to roads: {e}")
+        return gps_points  # Fallback to original points
+
+def apply_speed_profile(gps_points):
+    """
+    Calculate realistic speeds based on actual time differences from GPX file.
+    If timestamps are missing, estimate based on distances.
+    """
+    from math import radians, sin, cos, sqrt, atan2
+    
+    if not gps_points or len(gps_points) < 2:
+        return gps_points
+    
+    def haversine_distance(lat1, lon1, lat2, lon2):
+        R = 6371  # Earth radius in km
+        dlat = radians(lat2 - lat1)
+        dlon = radians(lon2 - lon1)
+        a = sin(dlat/2)**2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon/2)**2
+        c = 2 * atan2(sqrt(a), sqrt(1-a))
+        return R * c  # Return in km
+    
+    enhanced_points = []
+    
+    for i, point in enumerate(gps_points):
+        point_copy = dict(point)
+        
+        if i == 0:
+            # First point - no previous speed to calculate
+            speed_kmh = 0
+        else:
+            # Calculate speed based on distance from previous point
+            prev_point = gps_points[i-1]
+            distance_km = haversine_distance(prev_point['lat'], prev_point['lon'], 
+                                           point['lat'], point['lon'])
+            
+            # Calculate speed based on time difference if timestamps are available
+            if point.get('timestamp') and prev_point.get('timestamp'):
+                time_diff_seconds = point['timestamp'] - prev_point['timestamp']
+                if time_diff_seconds > 0:
+                    speed_kmh = (distance_km / time_diff_seconds) * 3600  # Convert to km/h
+                else:
+                    speed_kmh = 0
+            else:
+                # If no timestamps, use default speed
+                speed_kmh = 50
+        
+        # Cap speeds to realistic motorcycle ranges (0-180 km/h)
+        speed_kmh = max(0, min(180, speed_kmh))
+        
+        point_copy['speed'] = speed_kmh
+        # Keep original timestamp if available
+        if 'timestamp' not in point_copy or point_copy['timestamp'] is None:
+            # If no timestamp, create sequential timestamps for calculation purposes
+            if enhanced_points:
+                last_timestamp = enhanced_points[-1]['timestamp'] or 0
+                # Estimate time based on distance and realistic speed (50 km/h average)
+                if i < len(gps_points) - 1:
+                    next_point = gps_points[i + 1]
+                    distance_km = haversine_distance(point['lat'], point['lon'], 
+                                                   next_point['lat'], next_point['lon'])
+                    # Assume average speed of 50 km/h for time estimation
+                    estimated_time_seconds = (distance_km / 50) * 3600 if distance_km > 0 else 10
+                    estimated_time_seconds = max(5, min(300, estimated_time_seconds))  # 5-300 seconds between points
+                else:
+                    estimated_time_seconds = 10
+                point_copy['timestamp'] = last_timestamp + estimated_time_seconds
+            else:
+                point_copy['timestamp'] = 0
+        
+        enhanced_points.append(point_copy)
+    
+    return enhanced_points
 
 def calculate_ride_stats(gps_points):
     """Calculate ride statistics from GPS points"""
@@ -3185,22 +3355,45 @@ def calculate_ride_stats(gps_points):
         current = gps_points[i]
         next_point = gps_points[i + 1]
         
+        # Handle both sqlite3.Row objects (use []) and dict objects (use .get())
+        if hasattr(current, 'get') and callable(getattr(current, 'get', None)):  # dict-like object with .get() method
+            lat1 = current.get('latitude', current.get('lat', 0))
+            lon1 = current.get('longitude', current.get('lon', 0))
+            lat2 = next_point.get('latitude', next_point.get('lat', 0))
+            lon2 = next_point.get('longitude', next_point.get('lon', 0))
+            speed = current.get('speed', 0) or 0
+        else:  # sqlite3.Row object - use direct indexing
+            lat1 = current['latitude']
+            lon1 = current['longitude']
+            lat2 = next_point['latitude']
+            lon2 = next_point['longitude']
+            speed = current['speed']
+        
         # Calculate distance
-        dist = haversine(current['latitude'], current['longitude'],
-                         next_point['latitude'], next_point['longitude'])
+        dist = haversine(lat1, lon1, lat2, lon2)
         total_distance += dist
         
         # Track speeds
-        speed = current['speed'] if current['speed'] else 0
         speeds.append(speed)
         if speed > top_speed:
             top_speed = speed
     
     # Calculate time in seconds
     if len(gps_points) >= 2:
-        first_time = gps_points[0]['timestamp']
-        last_time = gps_points[-1]['timestamp']
-        total_time = max(1, last_time - first_time)  # Avoid division by zero
+        # Handle both sqlite3.Row objects and dict objects for timestamp access
+        if hasattr(gps_points[0], 'get') and callable(getattr(gps_points[0], 'get', None)):
+            first_time = gps_points[0].get('timestamp')
+            last_time = gps_points[-1].get('timestamp')
+        else:
+            first_time = gps_points[0]['timestamp']
+            last_time = gps_points[-1]['timestamp']
+        
+        if first_time is not None and last_time is not None:
+            total_time = max(1, last_time - first_time)  # Avoid division by zero
+        else:
+            # If timestamps are missing, estimate based on number of points
+            # Assume 10 seconds per point on average
+            total_time = max(1, (len(gps_points) - 1) * 10)
     else:
         total_time = 1
     

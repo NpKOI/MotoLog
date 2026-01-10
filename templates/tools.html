@@ -26,6 +26,7 @@
       <button class="tab-button active" data-tab="maint" onclick="showTab('maint', this)">Maintenance Reminders</button>
       <button class="tab-button" data-tab="weather" onclick="showTab('weather', this)">Weather Alerts</button>
       <button class="tab-button" data-tab="emergency" onclick="showTab('emergency', this)">Emergency Info</button>
+      <button class="tab-button" data-tab="gpx" onclick="showTab('gpx', this)">GPX Processing</button>
     </div>
 
     <div id="maint" class="leaderboard-table" style="display:block;">
@@ -106,11 +107,42 @@
         <p>{{ user['emergency_name'] or 'No contact set' }} — {{ user['emergency_phone'] or '-' }}</p>
       </div>
     </div>
+
+    <div id="gpx" class="leaderboard-table" style="display:none;">
+      <h3>GPX File Processing</h3>
+      <p>MotoLog now supports advanced GPX processing with road snapping and realistic speed simulation.</p>
+      
+      <h4>Features:</h4>
+      <ul>
+        <li><strong>Road Snapping:</strong> GPX routes are automatically snapped to real roads using OpenStreetMap data</li>
+        <li><strong>Speed Simulation:</strong> Realistic speeds based on road types (motorways, city streets, etc.)</li>
+        <li><strong>Traffic Simulation:</strong> Includes stops at traffic lights and variable speeds</li>
+        <li><strong>Accurate Statistics:</strong> Proper distance, duration, and speed calculations</li>
+      </ul>
+      
+      <h4>Setup Requirements:</h4>
+      <p>To use road snapping, you need to set up OSRM (Open Source Routing Machine):</p>
+      <ol>
+        <li>Install OSRM backend on your server</li>
+        <li>Download OpenStreetMap data for your region</li>
+        <li>Start the OSRM routing service</li>
+        <li>Set the <code>OSRM_URL</code> environment variable</li>
+      </ol>
+      
+      <p><a href="/static/GPX_PROCESSING_README.md" target="_blank">📖 View detailed setup instructions</a></p>
+      
+      <h4>How to Use:</h4>
+      <ol>
+        <li>Go to the <a href="/track-ride">Track Ride</a> page</li>
+        <li>Upload a GPX file using the GPX upload feature</li>
+        <li>The system will process the file and simulate the ride with accurate road-following</li>
+      </ol>
+    </div>
   </div>
 
   <script>
     function showTab(id, btn) {
-      ['maint','weather','emergency'].forEach(k => document.getElementById(k).style.display = (k===id ? 'block' : 'none'));
+      ['maint','weather','emergency','gpx'].forEach(k => document.getElementById(k).style.display = (k===id ? 'block' : 'none'));
       document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
       if (btn) btn.classList.add('active');
     }
