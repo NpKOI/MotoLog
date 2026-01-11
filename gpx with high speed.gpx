@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="ChatGPT" xmlns="http://www.topografix.com/GPX/1/1">
+
+<trk>
+  <name>Burgas Simulated City + High Speed Ride</name>
+  <trkseg>
+
+    <!-- START - Central Burgas -->
+    <trkpt lat="42.50610" lon="27.46780">
+      <time>2025-01-01T08:00:00Z</time>
+    </trkpt>
+
+    <!-- CITY RIDING 40-50 km/h -->
+    <trkpt lat="42.50595" lon="27.46820"><time>2025-01-01T08:00:20Z</time></trkpt>
+    <trkpt lat="42.50580" lon="27.46870"><time>2025-01-01T08:00:40Z</time></trkpt>
+    <trkpt lat="42.50560" lon="27.46930"><time>2025-01-01T08:01:00Z</time></trkpt>
+    <trkpt lat="42.50540" lon="27.47000"><time>2025-01-01T08:01:25Z</time></trkpt>
+    <trkpt lat="42.50510" lon="27.47070"><time>2025-01-01T08:01:50Z</time></trkpt>
+
+    <!-- TRAFFIC LIGHT STOP (30 sec pause) -->
+    <trkpt lat="42.50510" lon="27.47070"><time>2025-01-01T08:02:20Z</time></trkpt>
+
+    <!-- SLOW TRAFFIC -->
+    <trkpt lat="42.50490" lon="27.47120"><time>2025-01-01T08:03:00Z</time></trkpt>
+    <trkpt lat="42.50460" lon="27.47190"><time>2025-01-01T08:03:45Z</time></trkpt>
+
+    <!-- EXIT CITY -->
+    <trkpt lat="42.50430" lon="27.47280"><time>2025-01-01T08:04:30Z</time></trkpt>
+    <trkpt lat="42.50400" lon="27.47380"><time>2025-01-01T08:05:10Z</time></trkpt>
+    <trkpt lat="42.50380" lon="27.47500"><time>2025-01-01T08:05:50Z</time></trkpt>
+
+    <!-- ACCELERATION ZONE -->
+    <trkpt lat="42.50450" lon="27.46000"><time>2025-01-01T08:10:00Z</time></trkpt>
+    <trkpt lat="42.50650" lon="27.45000"><time>2025-01-01T08:13:00Z</time></trkpt>
+
+    <!-- HIGH SPEED SECTION (200 km/h sustained) -->
+    <trkpt lat="42.51000" lon="27.43000"><time>2025-01-01T08:15:00Z</time></trkpt>
+    <trkpt lat="42.51500" lon="27.40000"><time>2025-01-01T08:18:00Z</time></trkpt>
+    <trkpt lat="42.52000" lon="27.37000"><time>2025-01-01T08:21:00Z</time></trkpt>
+    <trkpt lat="42.52500" lon="27.34000"><time>2025-01-01T08:24:00Z</time></trkpt>
+
+    <!-- REST STOP (10 min) -->
+    <trkpt lat="42.52500" lon="27.34000"><time>2025-01-01T08:34:00Z</time></trkpt>
+
+    <!-- RETURN - MODERATE SPEED -->
+    <trkpt lat="42.52000" lon="27.37000"><time>2025-01-01T08:42:00Z</time></trkpt>
+    <trkpt lat="42.51500" lon="27.40000"><time>2025-01-01T08:50:00Z</time></trkpt>
+    <trkpt lat="42.51000" lon="27.43000"><time>2025-01-01T08:58:00Z</time></trkpt>
+
+    <!-- CITY RE-ENTRY -->
+    <trkpt lat="42.50650" lon="27.45000"><time>2025-01-01T09:10:00Z</time></trkpt>
+    <trkpt lat="42.50500" lon="27.46500"><time>2025-01-01T09:20:00Z</time></trkpt>
+    <trkpt lat="42.50610" lon="27.46780"><time>2025-01-01T09:30:00Z</time></trkpt>
+
+  </trkseg>
+</trk>
+
+</gpx>
