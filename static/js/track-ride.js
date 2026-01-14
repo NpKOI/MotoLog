@@ -18,6 +18,24 @@ let totalDistance = 0;
 let avgSpeed = 0;
 let topSpeed = 0;
 
+// GPS source indicator (native | browser | none)
+function setGPSSource(source) {
+  try {
+    let el = document.getElementById('gpsSource');
+    if (!el) {
+      const statusEl = document.getElementById('status');
+      if (!statusEl) return;
+      el = document.createElement('span');
+      el.id = 'gpsSource';
+      el.style.cssText = 'margin-left:8px; font-size:0.85rem; color:var(--muted);';
+      statusEl.appendChild(el);
+    }
+    if (source === 'native') el.textContent = ' (GPS: device)';
+    else if (source === 'browser') el.textContent = ' (GPS: browser)';
+    else el.textContent = '';
+  } catch (e) { /* ignore DOM errors */ }
+}
+
 // Toast notification system (instead of alert)
 function showToast(message, type = 'info', duration = 3000) {
   // type can be: 'success', 'error', 'info', 'warning'
@@ -210,7 +228,20 @@ function startRide() {
       
       // Start GPS tracking
       console.log('🎯 Starting GPS tracking...');
-      startGPSTracking();
+      // If native initial fix available, use it first for best accuracy
+      if (window.NativeGeo && typeof window.NativeGeo.getCurrentPosition === 'function') {
+        window.NativeGeo.getCurrentPosition({ timeout: 7000 })
+          .then((pos) => {
+            try { onGPSUpdate(pos); } catch (e) { console.warn('Error applying native initial fix', e); }
+            startGPSTracking();
+          })
+          .catch((err) => {
+            console.warn('Native initial position failed, falling back to normal watch:', err);
+            startGPSTracking();
+          });
+      } else {
+        startGPSTracking();
+      }
     } else if (data.success === false) {
       throw new Error('API error: ' + (data.error || 'Unknown error'));
     } else {
@@ -228,28 +259,53 @@ function startRide() {
 
 // Start GPS tracking with watchPosition
 function startGPSTracking() {
-  if (!navigator.geolocation) {
+  // Prefer NativeGeo (bridge) when available (in Capacitor app), otherwise use browser geolocation
+  const hasNative = window.NativeGeo && typeof window.NativeGeo.watchPosition === 'function';
+
+  if (!hasNative && !navigator.geolocation) {
     console.warn('⚠️ Geolocation not supported on this device');
     showToast('Geolocation not available. Recording will continue without GPS.', 'warning');
     return;
   }
-  
+
   // Clear any previous GPS watch to avoid conflicts
   if (gpsWatchId !== null) {
     console.log('🛑 Clearing previous GPS watch:', gpsWatchId);
-    navigator.geolocation.clearWatch(gpsWatchId);
+    try {
+      if (hasNative && typeof gpsWatchId === 'string') {
+        window.NativeGeo.clearWatch(gpsWatchId);
+      } else if (navigator.geolocation && typeof gpsWatchId === 'number') {
+        navigator.geolocation.clearWatch(gpsWatchId);
+      }
+    } catch (e) { console.warn('Error clearing previous GPS watch:', e); }
     gpsWatchId = null;
   }
-  
+
   const options = {
     enableHighAccuracy: true,
-    maximumAge: 0,  // Don't use cached location - always get fresh GPS
-    timeout: 5000   // Wait up to 5 seconds for a GPS fix
+    maximumAge: 0,
+    timeout: 5000
   };
-  
-  console.log('🎯 Starting fresh GPS watch with options:', options);
-  gpsWatchId = navigator.geolocation.watchPosition(onGPSUpdate, onGPSError, options);
-  console.log('   GPS watch ID:', gpsWatchId);
+
+  console.log('🎯 Starting fresh GPS watch with options:', options, 'usingNative=', hasNative);
+
+  if (hasNative) {
+    try {
+      // Native watch returns a string id we can use to clear later
+      gpsWatchId = window.NativeGeo.watchPosition(onGPSUpdate, onGPSError, options);
+      console.log('   Native GPS watch ID:', gpsWatchId);
+      setGPSSource('native');
+    } catch (e) {
+      console.warn('NativeGeo.watchPosition failed, falling back to browser geolocation:', e);
+      gpsWatchId = navigator.geolocation.watchPosition(onGPSUpdate, onGPSError, options);
+      console.log('   Browser GPS watch ID:', gpsWatchId);
+      setGPSSource('browser');
+    }
+  } else {
+    gpsWatchId = navigator.geolocation.watchPosition(onGPSUpdate, onGPSError, options);
+    console.log('   Browser GPS watch ID:', gpsWatchId);
+    setGPSSource('browser');
+  }
 }
 
 // Handle GPS updates
@@ -438,9 +494,16 @@ function stopRide() {
   
   // Stop GPS tracking first
   if (gpsWatchId) {
-    navigator.geolocation.clearWatch(gpsWatchId);
+    try {
+      if (window.NativeGeo && typeof gpsWatchId === 'string') {
+        window.NativeGeo.clearWatch(gpsWatchId);
+      } else if (navigator.geolocation && typeof gpsWatchId === 'number') {
+        navigator.geolocation.clearWatch(gpsWatchId);
+      }
+    } catch (e) { console.warn('Error clearing GPS watch on stop:', e); }
     gpsWatchId = null;
     console.log('🛑 GPS watch stopped');
+    setGPSSource('none');
   }
   
   // Update modal with current stats

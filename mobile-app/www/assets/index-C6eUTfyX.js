@@ -1,0 +1,2 @@
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["assets/web-KS-Zsj_K.js","assets/index-BikSYcsu.js"])))=>i.map(i=>d[i]);
+import{r as e,_ as t}from"./index-BikSYcsu.js";var a,r,s,E;(r=a||(a={})).Documents="DOCUMENTS",r.Data="DATA",r.Library="LIBRARY",r.Cache="CACHE",r.External="EXTERNAL",r.ExternalStorage="EXTERNAL_STORAGE",(E=s||(s={})).UTF8="utf8",E.ASCII="ascii",E.UTF16="utf16";const A=e("Filesystem",{web:()=>t(()=>import("./web-KS-Zsj_K.js"),__vite__mapDeps([0,1])).then(e=>new e.FilesystemWeb)});export{a as Directory,s as Encoding,A as Filesystem};

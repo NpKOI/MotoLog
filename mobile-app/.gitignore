@@ -1,0 +1,17 @@
+node_modules/
+dist/
+build/
+.DS_Store
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+*.log
+ios/App/Pods/
+ios/App/Podfile.lock
+.env.local
+.env.*.local
+*.ipa
+*.xcarchive
+DerivedData/
