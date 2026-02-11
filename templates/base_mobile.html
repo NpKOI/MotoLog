@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>{% block title %}MotoLog{% endblock %}</title>
+  <style>
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      overflow-y: auto;
+      box-sizing: border-box;
+      background: #f7f7f7;
+      font-family: 'Inter', Arial, sans-serif;
+    }
+    .mobile-nav {
+      width: 100vw;
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      display: flex;
+      flex-direction: row;
+      justify-content: space-around;
+      align-items: center;
+      padding: 12px 0;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .mobile-nav a {
+      font-size: 1.1em;
+      color: #3a3a3a;
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+    .mobile-nav a.active, .mobile-nav a:hover {
+      background: #e6f0ff;
+      color: #1565c0;
+    }
+    .container {
+      width: 100vw;
+      min-height: calc(100vh - 56px);
+      margin: 0;
+      padding: 16px 8px;
+      background: #fff;
+      border-radius: 0;
+      box-shadow: none;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: flex-start;
+    }
+    .mobile-title {
+      font-size: 2em;
+      font-weight: 700;
+      margin-bottom: 24px;
+      color: #1565c0;
+      text-align: center;
+    }
+    .mobile-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 24px;
+    }
+    .mobile-form input, .mobile-form button {
+      font-size: 1.1em;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      margin-bottom: 8px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .mobile-form button {
+      background: #1565c0;
+      color: #fff;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .mobile-form button:hover {
+      background: #0d47a1;
+    }
+    .flash-messages {
+      margin-bottom: 16px;
+    }
+    .flash-message {
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      font-size: 1em;
+    }
+    .flash-message.success { background: #e6ffe6; color: #2e7d32; }
+    .flash-message.error { background: #ffe6e6; color: #c62828; }
+    .flash-message.info { background: #e6f0ff; color: #1565c0; }
+  </style>
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <nav class="mobile-nav">
+    <a href="/dashboard" class="{% if request.path == '/dashboard' %}active{% endif %}">🏠</a>
+    <a href="/leaderboard" class="{% if request.path == '/leaderboard' %}active{% endif %}">🏆</a>
+    <a href="/events" class="{% if request.path == '/events' %}active{% endif %}">🗓️</a>
+    <a href="/track_ride" class="{% if request.path == '/track_ride' %}active{% endif %}">🛣️</a>
+    <a href="/profile" class="{% if request.path == '/profile' %}active{% endif %}">👤</a>
+  </nav>
+  <div class="container">
+    <div class="mobile-title">{% block mobile_title %}MotoLog{% endblock %}</div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-messages">
+          {% for category, message in messages %}
+            <div class="flash-message {{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </div>
+</body>
+</html>

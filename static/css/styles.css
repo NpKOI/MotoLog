@@ -1,3 +1,76 @@
+/* Navbar mobile fix: stack, full width, touch-friendly */
+@media (max-width: 700px) {
+  .navbar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    min-width: 0 !important;
+    gap: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 10px 0 0 0 !important;
+  }
+  .navbar .brand {
+    justify-content: center !important;
+    width: 100vw !important;
+    font-size: 1.1rem !important;
+    padding: 8px 0 !important;
+  }
+  .navbar .nav-left {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    width: 100vw !important;
+    gap: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+  .navbar a.nav-link {
+    font-size: 1.1rem !important;
+    padding: 16px 0 !important;
+    border-radius: 0 !important;
+    width: 100vw !important;
+    text-align: left !important;
+    border-bottom: 1px solid #f0f0f0 !important;
+    background: none !important;
+  }
+  .nav-actions {
+    flex-direction: row !important;
+    justify-content: center !important;
+    width: 100vw !important;
+    gap: 12px !important;
+    margin: 0 !important;
+    padding: 8px 0 !important;
+  }
+  .icon-btn {
+    width: 48px !important;
+    height: 48px !important;
+    font-size: 1.2rem !important;
+  }
+}
+/* Login page mobile stacking fix */
+@media (max-width: 700px) {
+  .login-main {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    align-items: stretch !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+  }
+  .login-hero, .login-form {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+}
 /* ===========================
 MotoLogv2 — Modern UI Theme (fixed)
 
@@ -874,4 +947,116 @@ body.dark input:focus,
 body.dark textarea:focus,
 body.dark select:focus {
   border-color: var(--primary-500);
+}
+
+/* Prevent horizontal scrolling and squishing */
+html, body {
+  width: 100vw;
+  max-width: 100vw;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+/* Responsive container for main content */
+.dashboard-container, .form-card, .stat-card, .profile-header, .container {
+  box-sizing: border-box;
+}
+
+
+/* Enhanced mobile responsiveness for all main containers and flex layouts */
+@media (max-width: 700px) {
+  html, body {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .dashboard-container,
+  .form-card,
+  .stat-card,
+  .profile-header,
+  .container,
+  main,
+  section,
+  header,
+  aside {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    margin: 0 !important;
+    padding: 10px 4vw !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+  main[style], section[style], aside[style] {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    padding: 0 !important;
+  }
+  h1, h2, h3 {
+    font-size: 1.25em !important;
+    text-align: center !important;
+    margin: 0.5em 0 !important;
+  }
+  .btn, .btn-secondary {
+    font-size: 1.08em !important;
+    padding: 13px 0 !important;
+    border-radius: 8px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  ._navbar, .navbar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    width: 100vw !important;
+    min-width: 0 !important;
+    padding: 10px 4vw !important;
+  }
+  .form-group, .form-card, .stat-card {
+    padding: 12px 6px !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+  input, select, textarea {
+    font-size: 1.08em !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 13px 10px !important;
+    margin-bottom: 10px !important;
+  }
+  .ride-card, .profile-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+  .flash-message {
+    font-size: 1em !important;
+    padding: 10px 8px !important;
+    margin-bottom: 10px !important;
+  }
+  .form-card h2 {
+    font-size: 1.3em !important;
+    margin-bottom: 10px !important;
+  }
+  .form-group label {
+    font-size: 1em !important;
+    margin-bottom: 6px !important;
+  }
+  .form-group {
+    margin-bottom: 10px !important;
+  }
+  .dashboard-container {
+    padding-top: 18px !important;
+  }
+  /* Hide left hero on login/register for mobile, or stack below form */
+  .login-hero, .register-hero {
+    display: none !important;
+  }
 }

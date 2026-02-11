@@ -23,7 +23,7 @@
     {% endwith %}
 
     <!-- Hero / quick stats -->
-    <header style="display:flex; gap:18px; align-items:center; margin-top:18px;">
+    <header class="dashboard-hero" style="display:flex; gap:18px; align-items:center; margin-top:18px;">
       <div style="flex:1; background:linear-gradient(135deg,var(--card-bg),color-mix(in srgb,var(--card-bg) 96%, var(--glass) 4%)); padding:18px; border-radius:16px; box-shadow:var(--shadow-1); display:flex; align-items:center; gap:18px;">
         <div style="width:92px; height:92px; border-radius:12px; display:flex; align-items:center; justify-content:center;">
           <img src="{{ url_for('static', filename='MotoLog_Logo.png') }}" alt="MotoLog" class="logo-hero">
@@ -41,7 +41,7 @@
     </header>
 
     <!-- Stats grid -->
-    <section style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap:16px; margin-top:18px;">
+    <section class="dashboard-stats" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap:16px; margin-top:18px;">
       <div class="stat-card">
         <div style="font-size:0.9rem; color:var(--muted); font-weight:700;">Total Rides</div>
         <div style="font-size:1.9rem; font-weight:800; color:var(--primary-600); margin-top:8px;">{{ total_rides }}</div>

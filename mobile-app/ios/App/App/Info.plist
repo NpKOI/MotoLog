@@ -49,17 +49,13 @@
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
-		<key>NSExceptionDomains</key>
-		<dict>
-			<key>192.168.0.102</key>
-			<dict>
-				<key>NSIncludesSubdomains</key>
-				<true/>
-				<key>NSExceptionAllowsInsecureHTTPLoads</key>
-				<true/>
-			</dict>
-		</dict>
 	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>MotoLog needs camera access to capture ride photos</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>MotoLog needs location access to track your rides</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>MotoLog needs location access to track your rides</string>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
 </dict>
