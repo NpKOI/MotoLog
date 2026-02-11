@@ -34,7 +34,7 @@ const useUpload = () => {
 
             return await response.json();
         } catch (err) {
-            setError(err.message);
+            setError((err as Error).message || 'Unknown error');
         } finally {
             setLoading(false);
         }

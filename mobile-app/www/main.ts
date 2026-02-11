@@ -2,29 +2,32 @@ import { Capacitor, registerPlugin } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import { Network } from '@capacitor/network';
 
-// Native API plugins
-declare const MotoLogNative: any;
-
-const FLASK_SERVER_URL = 'http://127.0.0.1:5000'; // Change this when hosting
-const IFRAME_ID = 'motoapp-iframe';
-
 // Initialize app
 async function initializeApp() {
   console.log('🚀 MotoLog iOS App Initializing...');
   console.log('Platform:', Capacitor.getPlatform());
   
-  // Check network status
-  await checkNetworkStatus();
-  
-  // Listen for app lifecycle
+  // Setup app lifecycle
   setupAppListeners();
-  
-  // Load Flask app
-  loadFlaskApp();
-  
-  // Setup native bridges
-  setupNativeBridges();
 }
+
+// App lifecycle listeners
+function setupAppListeners() {
+  // Handle app pause/resume
+  App.addListener('appStateChange', state => {
+    console.log('App state changed, isActive:', state.isActive);
+  });
+  
+  // Handle back button
+  App.addListener('backButton', () => {
+    console.log('Back button pressed');
+  });
+}
+
+// Start app
+initializeApp().catch(err => {
+  console.error('❌ Failed to initialize app:', err);
+});
 
 // Network status check
 async function checkNetworkStatus() {

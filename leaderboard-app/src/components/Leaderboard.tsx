@@ -2,14 +2,18 @@ import React from 'react';
 import UserAvatar from './UserAvatar';
 import './leaderboard.css';
 
-const Leaderboard = ({ users }) => {
+interface LeaderboardProps {
+    users: any[];
+}
+
+const Leaderboard: React.FC<LeaderboardProps> = ({ users }) => {
     return (
         <div className="leaderboard">
             <h2>Leaderboard</h2>
             <ul>
-                {users.map(user => (
+                {users.map((user: any) => (
                     <li key={user.id} className="leaderboard-item">
-                        <UserAvatar url={user.profilePicture} />
+                        <UserAvatar imageUrl={user.profilePicture} />
                         <span className="username">{user.username}</span>
                         <span className="score">{user.score}</span>
                     </li>
