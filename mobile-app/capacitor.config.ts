@@ -6,7 +6,6 @@ const config: CapacitorConfig = {
   webDir: 'www-built',
   server: {
     url: 'https://web-production-24d0.up.railway.app',
-    androidScheme: 'https',
     cleartext: true,
     allowNavigation: ['*']
   },

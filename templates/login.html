@@ -10,10 +10,9 @@
   <div class="dashboard-container" style="max-width:1100px; padding-top:36px;">
     {% include '_navbar.html' %}
 
-    <main class="login-main">
-
+    <main class="login-main" style="display:flex; flex-direction:row; gap:28px; align-items:stretch; margin-top:28px; min-height: 540px;">
       <!-- left hero -->
-      <section class="login-hero">
+      <section class="login-hero" style="flex:1 1 0; display:flex; flex-direction:column; gap:18px; justify-content:center; min-width:320px; max-width:520px;">
         <div style="background: linear-gradient(135deg,var(--primary-500),var(--primary-600)); padding:28px; border-radius:18px; color:white; box-shadow:var(--shadow-2);">
           <h1 style="margin:0; font-family:'Poppins', Inter, sans-serif; font-size:2.1rem;">Welcome back</h1>
           <p style="color:rgba(255,255,255,0.92); margin-top:8px; font-size:1rem;">Track rides, join groups and connect with fellow riders — pick up where you left off.</p>
@@ -36,7 +35,7 @@
       </section>
 
       <!-- right form -->
-      <aside class="login-form">
+      <aside class="login-form" style="width:420px; min-width:320px; max-width:100%;">
         <div class="form-card">
           <h2>Sign in</h2>
 
@@ -69,7 +68,7 @@
             </div>
 
             <div class="form-group" style="margin-top:14px;">
-              <button type="submit" class="btn" style="width:100%;">Login</button>
+              <button type="submit" class="btn" style="width:100%">Login</button>
             </div>
           </form>
 
@@ -77,6 +76,5 @@
         </div>
       </aside>
     </main>
-  </div>
 </body>
 </html>
