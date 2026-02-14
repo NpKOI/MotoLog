@@ -1,10 +1,103 @@
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  // Set initial theme from localStorage
+  const saved = localStorage.getItem('moto_theme');
+  if (saved === 'dark') document.body.classList.add('dark');
+  else document.body.classList.remove('dark');
+  // Toggle theme
+  const themeToggle = document.getElementById('themeToggle');
+  const themeIcon = document.getElementById('themeIcon');
+  function updateThemeVars(isDark) {
+    document.documentElement.style.setProperty('--navbar-bg', isDark ? '#23242a' : '#f7f7f7');
+    document.documentElement.style.setProperty('--navbar-link', isDark ? '#5a6cff' : '#3949ab');
+    document.documentElement.style.setProperty('--navbar-link-active', '#fff');
+  }
+  updateThemeVars(document.body.classList.contains('dark'));
+  if (themeToggle) {
+    themeToggle.addEventListener('click', function(){
+      const isDark = document.body.classList.toggle('dark');
+      localStorage.setItem('moto_theme', isDark ? 'dark' : 'light');
+      if (themeIcon) {
+        themeIcon.innerHTML = isDark
+          ? '<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>'
+          : '<path d="M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4M12 7a5 5 0 100 10 5 5 0 000-10z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>';
+      }
+      updateThemeVars(isDark);
+    });
+  }
+});
+</script>
+{% if is_mobile %}
+<div class="mobile-navbar">
+  <div class="navbar-left">
+    <a href="/dashboard" class="logo-link" style="display:flex;align-items:center;">
+      <img src="{{ url_for('static', filename='MotoLog_Logo.png') }}" class="logo-img" alt="MotoLog Logo">
+    </a>
+  </div>
+  <div class="nav-links" style="overflow-x:auto; white-space:nowrap; display:flex; gap:24px; flex:1 1 auto; align-items:center; justify-content:center; min-width:0; scroll-behavior:smooth; -webkit-overflow-scrolling:touch;">
+    <a href="/dashboard">🏠 Dashboard</a>
+    <a href="/leaderboard">🏆 Leaderboard</a>
+    <a href="/tools">🛠️ Tools</a>
+    <a href="/events">🏍️ Events</a>
+    <a href="/track_ride">📍 Track Ride</a>
+    <a href="/ride_history">📊 My Rides</a>
+  </div>
+  <div class="nav-actions">
+    <button id="themeToggle" class="icon-btn" title="Toggle dark mode" aria-label="Toggle dark mode">
+      <!-- Desktop-style moon icon SVG -->
+      <svg id="themeIcon" width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+    </button>
+    <a href="/messages" class="icon-btn" title="Messages" aria-label="Messages">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+    </a>
+    <a href="/notifications" class="icon-btn" title="Notifications" aria-label="Notifications">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+    <div class="profile-avatar-dropdown">
+      <a href="/profile" class="profile-avatar" title="Account" aria-label="Account" style="margin-left:8px;">
+        {% if session.get('user_id') %}
+          {% set u = query_db('SELECT profile_pic, username FROM users WHERE id = ?', (session['user_id'],), one=True) %}
+          {% if u and u['profile_pic'] %}
+            <img src="{{ u['profile_pic'] }}" alt="Profile" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
+          {% else %}
+            <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--primary-500),var(--primary-600));display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;">{{ u['username'][0].upper() if u else 'U' }}</div>
+          {% endif %}
+        {% else %}
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M4 20c0-2.21 3.58-4 8-4s8 1.79 8 4" stroke="currentColor" stroke-width="1.5"/></svg>
+        {% endif %}
+      </a>
+      <div class="profile-dropdown-menu">
+        <a href="/profile" class="dropdown-item">My Profile</a>
+        <a href="/user_garage" class="dropdown-item">My Garage</a>
+        <a href="/add_bike" class="dropdown-item">Add Bike</a>
+        <a href="/logout" class="dropdown-item">Logout</a>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+// Dropdown logic for mobile profile icon
+const avatar = document.querySelector('.profile-avatar-dropdown .profile-avatar');
+const menu = document.querySelector('.profile-avatar-dropdown .profile-dropdown-menu');
+if (avatar && menu) {
+  avatar.addEventListener('click', function(e) {
+    e.preventDefault();
+    menu.classList.toggle('show');
+  });
+  document.addEventListener('click', function(e) {
+    if (!avatar.contains(e.target) && !menu.contains(e.target)) {
+      menu.classList.remove('show');
+    }
+  });
+}
+</script>
+{% else %}
 <nav class="navbar">
-  <div style="display:flex; align-items:center; gap:12px;">
+  <div class="navbar-row" style="display:flex; align-items:center; gap:12px; width:100%;">
     <div class="brand">
       <img src="{{ url_for('static', filename='MotoLog_Logo.png') }}" alt="MotoLog" class="logo-img">
       <span class="brand-text">MotoLog</span>
     </div>
-
     <div class="nav-left">
       <a class="nav-link" href="/dashboard">Dashboard</a>
       <a class="nav-link" href="/leaderboard">Leaderboard</a>
@@ -14,41 +107,31 @@
       <a class="nav-link" href="{{ url_for('ride_history') }}">📊 My Rides</a>
     </div>
   </div>
-
-  <!-- Nav Actions: always visible, contains search + theme toggle + profile (if logged in) -->
-  <div class="nav-actions" aria-hidden="false">
+  <div class="nav-actions" aria-hidden="false" style="position:static !important; display:flex; flex-direction:row; align-items:center; justify-content:flex-end; width:100%; margin-left:auto;">
     <!-- Search toggle -->
     <button id="searchToggle" class="icon-btn" title="Search users" aria-label="Search users">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
     </button>
-
-    <!-- Theme toggle (sun/moon icon) — visible to all users, logged in or not -->
+    <!-- Theme toggle (sun/moon icon) -->
     <button id="themeToggle" class="icon-btn" title="Toggle theme" aria-label="Toggle theme">
       <svg id="themeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none">
         <path d="M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4M12 7a5 5 0 100 10 5 5 0 000-10z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </button>
-
     {% if session.get('user_id') %}
       {% set u = query_db('SELECT profile_pic, username FROM users WHERE id = ?', (session['user_id'],), one=True) %}
-
-      <!-- Notifications bell icon — only logged in users -->
       <a href="/notifications" id="notificationsLink" class="icon-btn" title="Notifications" aria-label="Notifications" style="position:relative;">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </a>
-
-      <!-- Messages icon (paper-plane outline) — only logged in users -->
       <a href="/messages" id="messagesLink" class="icon-btn" title="Messages" aria-label="Messages" style="position:relative;">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <path d="M22 2L11 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
         </svg>
       </a>
-
-      <!-- Profile -->
       <div class="profile" style="position:relative;">
         <a href="/profile" class="profile-avatar" title="Account">
           {% if u and u['profile_pic'] %}
@@ -59,7 +142,6 @@
             </div>
           {% endif %}
         </a>
-
         <div class="profile-menu">
           <a href="/profile">My profile</a>
           <a href="/bikes">My Garage</a>
@@ -70,7 +152,6 @@
     {% endif %}
   </div>
 </nav>
-
 <!-- Search modal -->
 <div id="navSearchModal">
   <div class="panel">
@@ -252,3 +333,4 @@
   });
 </script>
 <script src="{{ url_for('static', filename='js/native-bridge.js') }}"></script>
+{% endif %}

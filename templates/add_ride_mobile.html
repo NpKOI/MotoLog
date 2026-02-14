@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>MotoLog — Add Ride</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <style>
+    .mobile-container { max-width: 480px; margin: 0 auto; padding: 18px 8px; background: var(--primary-50, #f7f7f7); }
+    .form-card { background: #fff; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 18px 12px; }
+    label { font-weight: 600; color: var(--primary-700); margin-bottom: 6px; display: block; }
+    input, select, textarea { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #e0e0e0; font-size: 1rem; margin-bottom: 10px; background: #fafbfc; }
+    .btn-primary { width: 100%; padding: 12px; background: linear-gradient(90deg, var(--primary-500), var(--primary-600)); color: #fff; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: 600; margin-top: 8px; cursor: pointer; }
+    .tags-section { margin-bottom: 18px; }
+    .tags-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag-label { padding: 8px 12px; border-radius: 8px; background: #f0f2f5; color: var(--primary-600); font-weight: 700; cursor: pointer; border: 1px solid #e0e0e0; }
+    .tag-checkbox:checked + .tag-label { background: var(--primary-500); color: #fff; }
+    @media (prefers-color-scheme: dark) { .mobile-container { background: #181a20 !important; } .form-card { background: #23242a !important; color: #f7f7f7; } }
+  </style>
+</head>
+<body>
+  <div class="mobile-container">
+    {% include '_navbar.html' %}
+    <div class="form-card">
+      <h2 style="text-align:center;">🛣️ Log Your Ride</h2>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="flash-messages">
+            {% for category, message in messages %}
+              <div class="flash-message {{ category }}">{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+      <form method="POST" action="/add-ride">
+        <label for="date">Date</label>
+        <input type="date" id="date" name="date" required>
+        <label for="bike_id">Bike (Optional)</label>
+        <select id="bike_id" name="bike_id">
+          <option value="">-- Select your bike --</option>
+          {% for b in bikes %}
+            <option value="{{ b['id'] }}">{{ b['name'] }} {% if b['make_model'] %}({{ b['make_model'] }}){% endif %}</option>
+          {% endfor %}
+        </select>
+        <label for="distance">Distance (km)</label>
+        <input type="number" id="distance" name="distance" step="0.1" placeholder="50" required>
+        <label for="time">Time (hours)</label>
+        <input type="number" id="time" name="time" step="0.1" placeholder="2.5" required>
+        <div class="tags-section">
+          <div style="font-weight:700; margin-bottom:8px;">🏷️ Ride Tags</div>
+          <div class="tags-grid">
+            <input type="checkbox" id="tag_sunny" class="tag-checkbox" name="tag" value="sunny"><label for="tag_sunny" class="tag-label">☀️ Sunny</label>
+            <input type="checkbox" id="tag_rain" class="tag-checkbox" name="tag" value="rain"><label for="tag_rain" class="tag-label">🌧️ Rain</label>
+            <input type="checkbox" id="tag_cloudy" class="tag-checkbox" name="tag" value="cloudy"><label for="tag_cloudy" class="tag-label">☁️ Cloudy</label>
+            <input type="checkbox" id="tag_cold" class="tag-checkbox" name="tag" value="cold"><label for="tag_cold" class="tag-label">❄️ Cold</label>
+            <input type="checkbox" id="tag_gravel" class="tag-checkbox" name="tag" value="gravel"><label for="tag_gravel" class="tag-label">🪨 Gravel</label>
+            <input type="checkbox" id="tag_offroad" class="tag-checkbox" name="tag" value="offroad"><label for="tag_offroad" class="tag-label">🏞️ Offroad</label>
+            <input type="checkbox" id="tag_highway" class="tag-checkbox" name="tag" value="highway"><label for="tag_highway" class="tag-label">🛣️ Highway</label>
+            <input type="checkbox" id="tag_city" class="tag-checkbox" name="tag" value="city"><label for="tag_city" class="tag-label">🏙️ City</label>
+            <input type="checkbox" id="tag_commute" class="tag-checkbox" name="tag" value="commute"><label for="tag_commute" class="tag-label">🚗 Commute</label>
+            <input type="checkbox" id="tag_tour" class="tag-checkbox" name="tag" value="tour"><label for="tag_tour" class="tag-label">🗺️ Tour</label>
+            <input type="checkbox" id="tag_sport" class="tag-checkbox" name="tag" value="sport"><label for="tag_sport" class="tag-label">⚡ Sport</label>
+            <input type="checkbox" id="tag_leisure" class="tag-checkbox" name="tag" value="leisure"><label for="tag_leisure" class="tag-label">😎 Leisure</label>
+          </div>
+          <label for="custom_tags" style="margin-top:10px;">+ Add Custom Tags</label>
+          <input type="text" id="custom_tags" name="custom_tags" placeholder="Add custom tags separated by commas">
+        </div>
+        <label for="description">Description</label>
+        <textarea id="description" name="description" rows="3" placeholder="Short notes about your ride..."></textarea>
+        <label style="display:flex; align-items:center; gap:0.5rem;">
+          <input type="checkbox" id="is_private" name="is_private">
+          <span style="font-weight:700;">Mark ride as private</span>
+        </label>
+        <button class="btn-primary" type="submit">✅ Save Ride</button>
+        <div style="text-align:center; margin-top:10px;">
+          <a href="/dashboard" style="color:var(--primary-600); text-decoration:none;">← Back to Dashboard</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>MotoLog — Profile</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <style>
+    .mobile-container { max-width: 480px; margin: 0 auto; padding: 18px 8px; background: var(--primary-50, #f7f7f7); }
+    .profile-header { background: #fff; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 18px 12px; margin-bottom: 18px; text-align:center; }
+    .profile-avatar { width: 96px; height: 96px; border-radius: 50%; overflow: hidden; margin: 0 auto 12px; border: 3px solid var(--primary-500); box-shadow: 0 4px 12px rgba(86,118,240,0.12); }
+    .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .profile-username { font-size: 1.4rem; font-weight: 700; color: var(--primary-600); margin-bottom: 0.5rem; }
+    .profile-bio { color: #555; line-height: 1.6; margin: 1rem 0; }
+    .profile-stats { display: flex; gap: 10px; justify-content: center; margin: 1rem 0; }
+    .stat { background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 10px; text-align: center; flex: 1; }
+    .edit-profile-btn { background: linear-gradient(135deg, var(--primary-500), var(--accent)); color: white; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 700; margin-top: 10px; }
+    @media (prefers-color-scheme: dark) { .mobile-container { background: #181a20 !important; } .profile-header, .stat { background: #23242a !important; color: #f7f7f7; } }
+  </style>
+</head>
+<body>
+  <div class="mobile-container">
+    {% include '_navbar.html' %}
+    <div class="profile-header">
+      <div class="profile-avatar">
+        {% if user['profile_pic'] %}
+          <img src="{{ user['profile_pic'] }}" alt="Profile Picture">
+        {% else %}
+          <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2.5rem;color:var(--primary-600);background:linear-gradient(135deg,#667eea,#764ba2);">{{ user['username'][0].upper() }}</div>
+        {% endif %}
+      </div>
+      <div class="profile-username">{{ user['username'] }}</div>
+      <div class="profile-bio">{{ user['bio'] or 'No bio yet.' }}</div>
+      <div class="profile-stats">
+        <div class="stat">
+          <div style="color:var(--muted);font-size:0.9rem;">Rides</div>
+          <div style="color:var(--primary-600);font-size:1.2rem;font-weight:bold;">{{ user['total_rides'] }}</div>
+        </div>
+        <div class="stat">
+          <div style="color:var(--muted);font-size:0.9rem;">Distance</div>
+          <div style="color:var(--primary-600);font-size:1.2rem;font-weight:bold;">{{ user['total_distance']|round(1) }} km</div>
+        </div>
+        <div class="stat">
+          <div style="color:var(--muted);font-size:0.9rem;">Followers</div>
+          <div style="color:var(--primary-600);font-size:1.2rem;font-weight:bold;">{{ user['followers'] }}</div>
+        </div>
+      </div>
+      <button class="edit-profile-btn" onclick="location.href='/edit_profile'">Edit Profile</button>
+    </div>
+  </div>
+</body>
+</html>

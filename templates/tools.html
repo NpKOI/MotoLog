@@ -8,6 +8,7 @@
 </head>
 <body>
   <div class="dashboard-container">
+    {% set is_mobile = is_mobile() if is_mobile is not defined else is_mobile %}
     {% include '_navbar.html' %}
 
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -20,7 +21,8 @@
       {% endif %}
     {% endwith %}
 
-    <h2 style="margin-bottom:1rem; color:var(--text);">🧰 Tools</h2>
+    <div style="margin-top:72px;"></div>
+    <h2 style="margin-bottom:1.5rem; color:var(--text); font-size:1.5em; font-weight:800; text-align:center;">🧰 Tools</h2>
 
     <div class="leaderboard-tabs" style="margin-bottom:1.5rem;">
       <button class="tab-button active" data-tab="maint" onclick="showTab('maint', this)">Maintenance Reminders</button>
@@ -185,6 +187,14 @@
           getWeather(city);
         });
       }
+    })();
+  </script>
+  <script>
+    // Ensure dark mode theme is initialized on page load
+    (function() {
+      const saved = localStorage.getItem('moto_theme');
+      if (saved === 'dark') document.body.classList.add('dark');
+      else document.body.classList.remove('dark');
     })();
   </script>
 </body>

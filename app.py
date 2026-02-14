@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
+import re
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import sqlite3
@@ -27,6 +28,19 @@ TAG_CATEGORIES = {
 
 # ======== EVENTS / MEETUPS SYSTEM ========
 
+def is_mobile():
+    ua = request.headers.get('User-Agent', '').lower()
+    # Common mobile device keywords
+    mobile_keywords = [
+        'iphone', 'android', 'ipad', 'mobile', 'ipod', 'blackberry', 'windows phone', 'opera mini', 'iemobile', 'webos', 'fennec', 'kindle', 'silk', 'palm', 'symbian', 'maemo', 'meego', 'nokia', 'samsung', 'htc', 'lg', 'motorola', 'huawei', 'oneplus', 'xiaomi', 'redmi', 'vivo', 'oppo', 'realme', 'zte', 'lenovo', 'sony', 'tablet', 'playbook', 'nexus', 'pixel', 'touch'
+    ]
+    # Capacitor/Cordova/Android/iOS WebView detection
+    if 'capacitor' in ua or 'cordova' in ua or 'wv' in ua or 'motolog' in ua:
+        return True
+    for kw in mobile_keywords:
+        if kw in ua:
+            return True
+    return False
 # Define event categories and status
 EVENT_CATEGORIES = {
     'ride': '🏍️ Group Ride',
@@ -385,7 +399,7 @@ def register():
         password = request.form['password']
         country = request.form['country']
         city = request.form.get('city', '')
-        hashed_password = generate_password_hash(password)
+        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
 
         try:
             query_db(
@@ -397,7 +411,9 @@ def register():
         except sqlite3.IntegrityError:
             flash('Email already exists. Please log in.', 'error')
 
-    return render_template('register.html')
+    if is_mobile():
+        return render_template('register_mobile.html', is_mobile=True)
+    return render_template('register.html', is_mobile=False)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -419,7 +435,9 @@ def login():
             flash('Login successful!', 'success')
             return redirect(url_for('dashboard'))
 
-    return render_template('login.html')
+    if is_mobile():
+        return render_template('login_mobile.html', is_mobile=True)
+    return render_template('login.html', is_mobile=False)
 
 @app.route('/dashboard')
 def dashboard():
@@ -442,9 +460,13 @@ def dashboard():
     total_time = sum(ride['time'] for ride in raw_rides) if raw_rides else 0
     avg_distance = total_distance / total_rides if total_rides > 0 else 0
 
+    if is_mobile():
+        return render_template('dashboard_mobile.html', rides=rides, total_rides=total_rides,
+                               total_distance=total_distance, avg_distance=avg_distance,
+                               total_time=total_time, is_mobile=True)
     return render_template('dashboard.html', rides=rides, total_rides=total_rides,
                            total_distance=total_distance, avg_distance=avg_distance,
-                           total_time=total_time)
+                           total_time=total_time, is_mobile=False)
 
 @app.route('/profile', methods=['GET', 'POST'])
 def profile():
@@ -503,6 +525,10 @@ def profile():
         ORDER BY f.created_at DESC
     ''', (user_id,))
 
+    if is_mobile():
+        return render_template('profile_mobile.html', user=user, total_rides=total_rides, 
+                               total_distance=total_distance, followers=followers, 
+                               following=following)
     return render_template('profile.html', user=user, total_rides=total_rides, 
                            total_distance=total_distance, followers=followers, 
                            following=following)
@@ -573,6 +599,10 @@ def user_profile(user_id):
         is_following = query_db('SELECT id FROM follows WHERE follower_id = ? AND followed_id = ?', 
                                 (session['user_id'], user_id), one=True) is not None
 
+    if is_mobile():
+        return render_template('user_profile_mobile.html', user=user, total_rides=total_rides,
+                               total_distance=total_distance, followers=followers, 
+                               following=following, rides=rides, is_following=is_following)
     return render_template('user_profile.html', user=user, total_rides=total_rides,
                            total_distance=total_distance, followers=followers, 
                            following=following, rides=rides, is_following=is_following)
@@ -1071,7 +1101,6 @@ def messages():
             'name': conv['user']['username'],
             'profile_pic': conv['user']['profile_pic'],
         })
-    
     for g in group_list:
         all_convs.append({
             'type': 'group',
@@ -1081,14 +1110,15 @@ def messages():
             'name': g['group']['name'],
             'profile_pic': g['group']['profile_pic'],
         })
-    
+
     # Sort by most recent time (descending)
     def sort_key(c):
         time_str = c['last_time'] or '1900-01-01'
         return time_str
-    
     all_convs.sort(key=sort_key, reverse=True)
 
+    if is_mobile():
+        return render_template('messages_mobile.html', conversations=all_convs)
     return render_template('messages.html', conversations=all_convs)
 
 @app.route('/messages/with/<int:user_id>')
@@ -1183,7 +1213,6 @@ def get_group_messages_ajax(group_id):
         })
     
     return {'messages': messages}
-
 # AJAX: Send user message
 @app.route('/messages/send-ajax/<int:recipient_id>', methods=['POST'])
 def send_message_ajax(recipient_id):
@@ -1229,9 +1258,6 @@ def poll_messages(other_user_id):
         })
     
     return {'messages': messages}
-
-@app.route('/logout')
-def logout():
     session.clear()
     flash('You have been logged out.', 'success')
     return redirect(url_for('login'))
@@ -1354,7 +1380,7 @@ def tools():
     maint = query_db('SELECT * FROM maintenance WHERE user_id = ? ORDER BY due_date IS NULL, due_date', (user_id,))
     user = query_db('SELECT * FROM users WHERE id = ?', (user_id,), one=True)
 
-    return render_template('tools.html', maintenance=maint, user=user, weather=weather_data)
+    return render_template('tools.html', maintenance=maint, user=user, weather=weather_data, is_mobile=is_mobile())
 
 @app.route('/leaderboard')
 def leaderboard():
@@ -1384,7 +1410,8 @@ def leaderboard():
     return render_template('leaderboard.html',
                            global_leaderboard=global_leaderboard,
                            local_leaderboard=local_leaderboard,
-                           user_country=user_country)
+                           user_country=user_country,
+                           is_mobile=is_mobile())
 
 @app.route('/edit-ride/<int:ride_id>', methods=['GET', 'POST'])
 def edit_ride(ride_id):
@@ -2691,16 +2718,14 @@ def my_events():
     
     return render_template('my_events.html', events=events, tab=tab, event_type=event_type)
 
-# ======== RIDE HISTORY ========
 
-@app.route('/ride-history')
+
+# ======== RIDE HISTORY ========
+@app.route('/ride_history')
 def ride_history():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    
     user_id = session['user_id']
-    
-    # Get all rides for this user ordered by date descending
     rides = query_db(
         '''SELECT id, title, description, date, distance, time, avg_speed, top_speed, public, bike_id
            FROM rides 
@@ -2708,28 +2733,24 @@ def ride_history():
            ORDER BY date DESC''',
         (user_id,)
     )
-    
-    # Convert Row objects to dicts and enrich with bike names
     rides_list = []
     total_distance = 0
     shared_count = 0
-    
     for ride in rides:
-        ride_dict = dict(ride)  # Convert sqlite3.Row to dict
+        ride_dict = dict(ride)
         if ride_dict['bike_id']:
             bike = query_db('SELECT name FROM bikes WHERE id = ?', (ride_dict['bike_id'],), one=True)
             ride_dict['bike_name'] = bike['name'] if bike else 'Unknown Bike'
         else:
             ride_dict['bike_name'] = 'No Bike'
         rides_list.append(ride_dict)
-        
-        # Calculate totals
         if ride_dict['distance']:
             total_distance += ride_dict['distance']
         if ride_dict['public']:
             shared_count += 1
-    
-    return render_template('ride_history.html', rides_list=rides_list, total_distance=total_distance, shared_count=shared_count)
+    if is_mobile():
+        return render_template('ride_history_mobile.html', rides_list=rides_list, total_distance=total_distance, shared_count=shared_count, is_mobile=True)
+    return render_template('ride_history.html', rides_list=rides_list, total_distance=total_distance, shared_count=shared_count, is_mobile=False)
 
 @app.route('/ride/<int:ride_id>')
 def view_ride(ride_id):
@@ -2869,19 +2890,19 @@ def api_delete_ride():
         'message': 'Ride deleted successfully'
     })
 
-# ======== GPS RIDE TRACKING SYSTEM ========
 
-@app.route('/track-ride')
+
+# ======== GPS RIDE TRACKING SYSTEM ========
+@app.route('/track_ride')
 def track_ride():
     """GPS ride tracking page"""
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    
-    # Get user's bikes for selection (use existing schema columns `name` and `make_model`)
     user_id = session['user_id']
     bikes = query_db('SELECT id, name, make_model FROM bikes WHERE user_id = ? ORDER BY name, make_model', (user_id,))
-    
-    return render_template('track_ride.html', bikes=bikes, mapbox_key=os.environ.get('MAPBOX_KEY', ''))
+    if is_mobile():
+        return render_template('track_ride_mobile.html', bikes=bikes, mapbox_key=os.environ.get('MAPBOX_KEY', ''), is_mobile=True)
+    return render_template('track_ride.html', bikes=bikes, mapbox_key=os.environ.get('MAPBOX_KEY', ''), is_mobile=False)
 
 @app.route('/api/ride/start', methods=['POST'])
 def api_ride_start():

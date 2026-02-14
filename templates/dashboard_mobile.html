@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>MotoLog — Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <style>
+    .mobile-dashboard-container {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 18px 8px 0 8px;
+      min-height: 100vh;
+      background: var(--bg-global);
+      transition: background 300ms var(--ease), color 300ms var(--ease);
+    }
+    .mobile-hero {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-top: 12px;
+    }
+    .mobile-logo {
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      object-fit: cover;
+    }
+    .mobile-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .stat-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      padding: 12px 8px;
+      text-align: center;
+      color: var(--text);
+      transition: background 300ms var(--ease), color 300ms var(--ease);
+    }
+    .mobile-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      justify-content: center;
+    }
+    .btn {
+      padding: 10px 14px;
+      font-size: 1rem;
+      border-radius: 8px;
+      font-weight: 600;
+      background: var(--primary-500);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 300ms var(--ease);
+    }
+    .btn-secondary {
+      background: var(--accent);
+      color: #fff;
+    }
+    .ride-card {
+      background: var(--card-bg);
+      color: var(--text);
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      padding: 14px;
+      margin-bottom: 8px;
+      transition: background 300ms var(--ease), color 300ms var(--ease);
+    }
+    @media (max-width: 700px) {
+      .mobile-dashboard-container {
+        padding-top: 70px !important;
+      }
+    }
+    body.dark .mobile-dashboard-container {
+      background: var(--bg-global);
+    }
+    body.dark .stat-card, body.dark .ride-card {
+      background: var(--card-bg);
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+  <div class="mobile-dashboard-container">
+    {% include '_navbar.html' %}
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div style="margin-top:18px;">
+        <div class="flash-messages">
+          {% for category, message in messages %}
+            <div class="flash-message {{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <div class="mobile-hero" style="margin-top:70px;">
+      <img src="{{ url_for('static', filename='MotoLog_Logo.png') }}" alt="MotoLog" class="mobile-logo">
+      <div>
+        <div style="font-size:1.2rem; font-weight:700;">Hello, {{ session.get('username') or 'Rider' }} 👋</div>
+        <div style="color:var(--muted); margin-top:6px; font-size:1rem;">Quick actions, recent rides, and your progress at a glance.</div>
+      </div>
+    </div>
+
+    <div class="mobile-actions" style="margin-top:18px;">
+      <a href="/track-ride" class="btn" style="font-size:1.1rem;">📍 Track Ride</a>
+      <a href="/leaderboard" class="btn btn-secondary" style="font-size:1.1rem;">🏆 Leaderboard</a>
+    </div>
+
+    <div class="mobile-stats" style="margin-top:18px;">
+      <div class="stat-card">
+        <div style="font-size:1rem; color:var(--muted); font-weight:700;">Total Rides</div>
+        <div style="font-size:1.7rem; font-weight:800; color:var(--primary-600); margin-top:8px;">{{ total_rides }}</div>
+      </div>
+      <div class="stat-card">
+        <div style="font-size:1rem; color:var(--muted); font-weight:700;">Total Distance</div>
+        <div style="font-size:1.7rem; font-weight:800; color:var(--primary-600); margin-top:8px;">{{ "%.1f"|format(total_distance) }} km</div>
+      </div>
+      <div class="stat-card">
+        <div style="font-size:1rem; color:var(--muted); font-weight:700;">Total Time</div>
+        <div style="font-size:1.7rem; font-weight:800; color:var(--primary-600); margin-top:8px;">{{ "%.1f"|format(total_time) }} hrs</div>
+      </div>
+      <div class="stat-card">
+        <div style="font-size:1rem; color:var(--muted); font-weight:700;">Avg Distance</div>
+        <div style="font-size:1.7rem; font-weight:800; color:var(--primary-600); margin-top:8px;">{{ "%.1f"|format(avg_distance) }} km</div>
+      </div>
+    </div>
+
+    <section style="margin-top:28px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <h3 style="margin:0; color:var(--text); font-size:1.2rem;">Recent Rides</h3>
+        <a href="/track-ride" class="btn" style="padding:10px 14px; font-size:1.1rem;">📍 New ride</a>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:14px;">
+        {% if rides %}
+          {% for ride in rides %}
+            <div class="ride-card" style="padding:14px; border-radius:12px; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,0.07);">
+              <div style="display:flex; justify-content:space-between; gap:12px; align-items:flex-start;">
+                <div>
+                  <div style="font-weight:800; color:var(--primary-600); font-size:1.1rem;">{{ ride['date'] }}</div>
+                  <div style="color:var(--muted); margin-top:6px;">{{ ride['description'] or 'No description' }}</div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="font-weight:800; color:var(--text); font-size:1.1rem;">{{ ride['distance'] }} km</div>
+                  <div style="color:var(--muted); margin-top:6px;">{{ ride['time'] }} hrs</div>
+                </div>
+              </div>
+              {% if ride.tag_list %}
+                <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+                  {% for tag in ride.tag_list %}
+                    <div style="background: color-mix(in srgb, var(--primary-500) 6%, transparent); color:var(--primary-600); padding:6px 8px; border-radius:8px; font-weight:700; font-size:0.95rem;">{{ tag }}</div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+              {% set groups = ride.tag_groups %}
+              {% for cat in ['weather', 'terrain', 'style', 'other'] %}
+                {% if groups[cat] %}
+                  <div class="tag-group" data-tag-category="{{ cat }}" style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+                    {% for tag in groups[cat] %}
+                      <div class="tag-badge">{{ tag }}</div>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+              {% endfor %}
+              <div style="display:flex; gap:10px; margin-top:12px;">
+                <a href="/edit-ride/{{ ride['id'] }}" class="btn" style="padding:10px 12px; font-size:1rem;">Edit</a>
+                <a href="/delete-ride/{{ ride['id'] }}" class="btn btn-secondary" style="padding:10px 12px; font-size:1rem;" onclick="return confirm('Delete this ride?')">Delete</a>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="stat-card" style="text-align:center;">
+            <div style="font-weight:700; color:var(--muted); font-size:1.1rem;">No rides yet</div>
+            <div style="color:var(--muted); margin-top:8px;">Start your first ride and it will appear here.</div>
+            <div style="margin-top:12px;"><a href="/add-ride" class="btn">Add your first ride</a></div>
+          </div>
+        {% endif %}
+      </div>
+    </section>
+
+  </div>
+</body>
+</html>
