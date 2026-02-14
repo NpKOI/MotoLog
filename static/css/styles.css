@@ -1,3 +1,17 @@
+/* iOS notch safe area support for mobile navbar */
+@media (max-width: 700px) {
+  .mobile-navbar {
+    padding-top: env(safe-area-inset-top, 20px) !important;
+    margin-top: 0 !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 2000 !important;
+    background: var(--navbar-bg, #fff) !important;
+  }
+  .dashboard-container {
+    padding-top: calc(env(safe-area-inset-top, 20px) + 12px) !important;
+  }
+}
 /* Mobile profile dropdown menu vertical layout */
 @media (max-width: 700px) {
   .profile-avatar-dropdown .profile-dropdown-menu {
