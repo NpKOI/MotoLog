@@ -4,7 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>{% block title %}MotoLog{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
   <style>
+        body.dark .container {
+          background: #181a20 !important;
+          color: #f7f7f7 !important;
+        }
+        body.dark .mobile-nav {
+          background: #23242a !important;
+          color: #f7f7f7 !important;
+        }
+        body.dark .mobile-title {
+          color: #f7f7f7 !important;
+        }
     html, body {
       width: 100vw;
       height: 100vh;
@@ -99,19 +111,34 @@
     .flash-message.success { background: #e6ffe6; color: #2e7d32; }
     .flash-message.error { background: #ffe6e6; color: #c62828; }
     .flash-message.info { background: #e6f0ff; color: #1565c0; }
+    body.dark .flash-message.success {
+      background: linear-gradient(180deg, #173324, #1f4d36) !important;
+      color: #7ef3ac !important;
+      border: 1px solid #2f7a56 !important;
+    }
+    body.dark .flash-message.error {
+      background: linear-gradient(180deg, #3b1d24, #52242f) !important;
+      color: #ff9cab !important;
+      border: 1px solid #8a3a4b !important;
+    }
+    body.dark .flash-message.info {
+      background: linear-gradient(180deg, #1d2d4a, #243861) !important;
+      color: #9ec5ff !important;
+      border: 1px solid #375a96 !important;
+    }
   </style>
+  <script>
+    // Persist dark mode across all mobile pages
+    document.addEventListener('DOMContentLoaded', function(){
+      const saved = localStorage.getItem('moto_theme');
+      if (saved === 'dark') document.body.classList.add('dark');
+      else document.body.classList.remove('dark');
+    });
+  </script>
   {% block head %}{% endblock %}
 </head>
 <body>
-  <nav class="mobile-nav">
-    <a href="/dashboard" class="{% if request.path == '/dashboard' %}active{% endif %}">🏠</a>
-    <a href="/leaderboard" class="{% if request.path == '/leaderboard' %}active{% endif %}">🏆</a>
-    <a href="/events" class="{% if request.path == '/events' %}active{% endif %}">🗓️</a>
-    <a href="/track_ride" class="{% if request.path == '/track_ride' %}active{% endif %}">🛣️</a>
-    <a href="/profile" class="{% if request.path == '/profile' %}active{% endif %}">👤</a>
-  </nav>
   <div class="container">
-    <div class="mobile-title">{% block mobile_title %}MotoLog{% endblock %}</div>
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         <div class="flash-messages">
@@ -123,5 +150,23 @@
     {% endwith %}
     {% block content %}{% endblock %}
   </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const flashNodes = document.querySelectorAll('.flash-message');
+      flashNodes.forEach((node) => {
+        const key = `flash:${node.className}:${node.textContent.trim()}`;
+        if (sessionStorage.getItem(key)) {
+          node.remove();
+          return;
+        }
+        sessionStorage.setItem(key, '1');
+        setTimeout(() => {
+          node.style.transition = 'opacity 220ms ease';
+          node.style.opacity = '0';
+          setTimeout(() => node.remove(), 220);
+        }, 2800);
+      });
+    });
+  </script>
 </body>
 </html>

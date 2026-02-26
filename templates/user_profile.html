@@ -97,7 +97,9 @@
 </head>
 <body>
   <div class="dashboard-container">
-    {% include '_navbar.html' %}
+    {% if not request.args.get('app') %}
+      {% include '_navbar.html' %}
+    {% endif %}
 
     <!-- Profile Header -->
     <div class="profile-header">

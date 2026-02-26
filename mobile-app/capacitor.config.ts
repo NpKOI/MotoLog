@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'MotoLog',
   webDir: 'www-built',
   server: {
-    url: 'https://web-production-24d0.up.railway.app',
+    url: 'http://192.168.1.16:5000', // Local Flask server for testing
     cleartext: true,
     allowNavigation: ['*']
   },

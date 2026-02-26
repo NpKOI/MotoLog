@@ -15,7 +15,9 @@
 </head>
 <body>
   <div class="dashboard-container">
-    {% include '_navbar.html' %}
+    {% if not request.args.get('app') %}
+      {% include '_navbar.html' %}
+    {% endif %}
     <div style="margin-bottom:1rem;">
       <a href="/user/{{ owner['id'] }}">← Back to {{ owner['username'] }}'s profile</a>
     </div>

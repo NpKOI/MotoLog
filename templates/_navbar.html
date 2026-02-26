@@ -1,95 +1,143 @@
 <script>
 document.addEventListener('DOMContentLoaded', function(){
-  // Set initial theme from localStorage
+  // Set initial theme from localStorage and update icon/vars
   const saved = localStorage.getItem('moto_theme');
-  if (saved === 'dark') document.body.classList.add('dark');
-  else document.body.classList.remove('dark');
-  // Toggle theme
-  const themeToggle = document.getElementById('themeToggle');
-  const themeIcon = document.getElementById('themeIcon');
+  const themeToggleMobile = document.getElementById('themeToggle');
+  const themeIconMobile = document.getElementById('themeIcon');
+  const themeToggleDesktop = document.getElementById('themeToggleDesktop');
+  const themeIconDesktop = document.getElementById('themeIconDesktop');
   function updateThemeVars(isDark) {
     document.documentElement.style.setProperty('--navbar-bg', isDark ? '#23242a' : '#f7f7f7');
     document.documentElement.style.setProperty('--navbar-link', isDark ? '#5a6cff' : '#3949ab');
     document.documentElement.style.setProperty('--navbar-link-active', '#fff');
   }
-  updateThemeVars(document.body.classList.contains('dark'));
-  if (themeToggle) {
-    themeToggle.addEventListener('click', function(){
-      const isDark = document.body.classList.toggle('dark');
-      localStorage.setItem('moto_theme', isDark ? 'dark' : 'light');
-      if (themeIcon) {
-        themeIcon.innerHTML = isDark
-          ? '<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>'
-          : '<path d="M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4M12 7a5 5 0 100 10 5 5 0 000-10z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>';
-      }
-      updateThemeVars(isDark);
+  function setThemeIcon(isDark){
+    if (themeIconMobile) {
+      themeIconMobile.innerHTML = isDark
+        ? '<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>'
+        : '<path d="M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4M12 7a5 5 0 100 10 5 5 0 000-10z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>';
+    }
+    if (themeIconDesktop) {
+      themeIconDesktop.innerHTML = isDark
+        ? '<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>'
+        : '<path d="M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4M12 7a5 5 0 100 10 5 5 0 000-10z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>';
+    }
+  }
+  if (saved === 'dark') document.body.classList.add('dark');
+  else document.body.classList.remove('dark');
+  const isDark = document.body.classList.contains('dark');
+  setThemeIcon(isDark);
+  updateThemeVars(isDark);
+  if (themeToggleMobile) {
+    themeToggleMobile.addEventListener('click', function(e){
+      e.preventDefault();
+      const nowDark = document.body.classList.toggle('dark');
+      localStorage.setItem('moto_theme', nowDark ? 'dark' : 'light');
+      setThemeIcon(nowDark);
+      updateThemeVars(nowDark);
+    });
+  }
+  if (themeToggleDesktop) {
+    themeToggleDesktop.addEventListener('click', function(e){
+      e.preventDefault();
+      const nowDark = document.body.classList.toggle('dark');
+      localStorage.setItem('moto_theme', nowDark ? 'dark' : 'light');
+      setThemeIcon(nowDark);
+      updateThemeVars(nowDark);
     });
   }
 });
 </script>
-{% if is_mobile %}
-<div class="mobile-navbar">
-  <div class="navbar-left">
-    <a href="/dashboard" class="logo-link" style="display:flex;align-items:center;">
-      <img src="{{ url_for('static', filename='MotoLog_Logo.png') }}" class="logo-img" alt="MotoLog Logo">
-    </a>
-  </div>
-  <div class="nav-links" style="overflow-x:auto; white-space:nowrap; display:flex; gap:24px; flex:1 1 auto; align-items:center; justify-content:center; min-width:0; scroll-behavior:smooth; -webkit-overflow-scrolling:touch;">
-    <a href="/dashboard">🏠 Dashboard</a>
-    <a href="/leaderboard">🏆 Leaderboard</a>
-    <a href="/tools">🛠️ Tools</a>
-    <a href="/events">🏍️ Events</a>
-    <a href="/track_ride">📍 Track Ride</a>
-    <a href="/ride_history">📊 My Rides</a>
-  </div>
-  <div class="nav-actions">
-    <button id="themeToggle" class="icon-btn" title="Toggle dark mode" aria-label="Toggle dark mode">
-      <!-- Desktop-style moon icon SVG -->
-      <svg id="themeIcon" width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-    </button>
-    <a href="/messages" class="icon-btn" title="Messages" aria-label="Messages">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-    </a>
-    <a href="/notifications" class="icon-btn" title="Notifications" aria-label="Notifications">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </a>
-    <div class="profile-avatar-dropdown">
-      <a href="/profile" class="profile-avatar" title="Account" aria-label="Account" style="margin-left:8px;">
-        {% if session.get('user_id') %}
-          {% set u = query_db('SELECT profile_pic, username FROM users WHERE id = ?', (session['user_id'],), one=True) %}
-          {% if u and u['profile_pic'] %}
-            <img src="{{ u['profile_pic'] }}" alt="Profile" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">
-          {% else %}
-            <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--primary-500),var(--primary-600));display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;">{{ u['username'][0].upper() if u else 'U' }}</div>
-          {% endif %}
-        {% else %}
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M4 20c0-2.21 3.58-4 8-4s8 1.79 8 4" stroke="currentColor" stroke-width="1.5"/></svg>
-        {% endif %}
-      </a>
-      <div class="profile-dropdown-menu">
-        <a href="/profile" class="dropdown-item">My Profile</a>
-        <a href="/user_garage" class="dropdown-item">My Garage</a>
-        <a href="/add_bike" class="dropdown-item">Add Bike</a>
-        <a href="/logout" class="dropdown-item">Logout</a>
-      </div>
+{% if is_mobile and not request.args.get('app') %}
+{% set u = query_db('SELECT profile_pic, username FROM users WHERE id = ?', (session['user_id'],), one=True) if session.get('user_id') else None %}
+<header class="mobile-navbar mobile-navbar--hamburger" role="banner">
+  <button id="mobileMenuToggle" class="icon-btn mobile-menu-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="mobileDrawerMenu">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    </svg>
+  </button>
+  <a href="/dashboard" class="mobile-brand-link" aria-label="Go to dashboard">
+    <img src="{{ url_for('static', filename='MotoLog_Logo.png') }}" class="logo-img" alt="MotoLog Logo">
+    <span class="brand-text">MotoLog</span>
+  </a>
+  <button id="themeToggle" class="icon-btn" title="Toggle dark mode" aria-label="Toggle dark mode" type="button">
+    <svg id="themeIcon" width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+  </button>
+</header>
+
+<div id="mobileDrawerBackdrop" class="mobile-drawer-backdrop" hidden></div>
+<nav id="mobileDrawerMenu" class="mobile-drawer" aria-hidden="true">
+  <div class="mobile-drawer-header">
+    <div class="mobile-drawer-user">
+      {% if u and u['profile_pic'] %}
+        <img src="{{ u['profile_pic'] }}" alt="Profile" class="mobile-drawer-avatar">
+      {% else %}
+        <div class="mobile-drawer-avatar mobile-drawer-avatar-fallback">{{ u['username'][0].upper() if u else 'U' }}</div>
+      {% endif %}
+      <div class="mobile-drawer-username">{{ u['username'] if u else 'Guest' }}</div>
     </div>
+    <button id="mobileMenuClose" class="icon-btn" type="button" aria-label="Close navigation menu">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    </button>
   </div>
-</div>
+
+  <a href="/dashboard" class="mobile-drawer-link">🏠 Dashboard</a>
+  <a href="/leaderboard" class="mobile-drawer-link">🏆 Leaderboard</a>
+  <a href="/tools" class="mobile-drawer-link">🛠️ Tools</a>
+  <a href="/events" class="mobile-drawer-link">🏍️ Events</a>
+  <a href="/track-ride" class="mobile-drawer-link">📍 Track Ride</a>
+  <a href="/ride_history" class="mobile-drawer-link">📊 My Rides</a>
+  <a href="/messages" class="mobile-drawer-link">✉️ Messages</a>
+  <a href="/notifications" class="mobile-drawer-link">🔔 Notifications</a>
+  <a href="/profile" class="mobile-drawer-link">👤 My Profile</a>
+  <a href="/user_garage" class="mobile-drawer-link">🏍️ My Garage</a>
+  <a href="/add-bike" class="mobile-drawer-link">➕ Add Bike</a>
+  {% if session.get('user_id') %}
+    <a href="{{ url_for('logout') }}" class="mobile-drawer-link">🚪 Logout</a>
+  {% endif %}
+</nav>
+
 <script>
-// Dropdown logic for mobile profile icon
-const avatar = document.querySelector('.profile-avatar-dropdown .profile-avatar');
-const menu = document.querySelector('.profile-avatar-dropdown .profile-dropdown-menu');
-if (avatar && menu) {
-  avatar.addEventListener('click', function(e) {
-    e.preventDefault();
-    menu.classList.toggle('show');
+document.addEventListener('DOMContentLoaded', function () {
+  const toggleBtn = document.getElementById('mobileMenuToggle');
+  const closeBtn = document.getElementById('mobileMenuClose');
+  const drawer = document.getElementById('mobileDrawerMenu');
+  const backdrop = document.getElementById('mobileDrawerBackdrop');
+
+  if (!toggleBtn || !drawer || !backdrop) return;
+
+  function setMenuState(open) {
+    drawer.classList.toggle('open', open);
+    backdrop.hidden = !open;
+    drawer.setAttribute('aria-hidden', open ? 'false' : 'true');
+    toggleBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    document.body.classList.toggle('mobile-menu-open', open);
+  }
+
+  toggleBtn.addEventListener('click', function () {
+    setMenuState(!drawer.classList.contains('open'));
   });
-  document.addEventListener('click', function(e) {
-    if (!avatar.contains(e.target) && !menu.contains(e.target)) {
-      menu.classList.remove('show');
-    }
+
+  if (closeBtn) {
+    closeBtn.addEventListener('click', function () {
+      setMenuState(false);
+    });
+  }
+
+  backdrop.addEventListener('click', function () {
+    setMenuState(false);
   });
-}
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') setMenuState(false);
+  });
+
+  drawer.querySelectorAll('a').forEach((link) => {
+    link.addEventListener('click', function () {
+      setMenuState(false);
+    });
+  });
+});
 </script>
 {% else %}
 <nav class="navbar">
@@ -113,8 +161,8 @@ if (avatar && menu) {
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
     </button>
     <!-- Theme toggle (sun/moon icon) -->
-    <button id="themeToggle" class="icon-btn" title="Toggle theme" aria-label="Toggle theme">
-      <svg id="themeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none">
+    <button id="themeToggleDesktop" class="icon-btn" title="Toggle theme" aria-label="Toggle theme">
+      <svg id="themeIconDesktop" width="18" height="18" viewBox="0 0 24 24" fill="none">
         <path d="M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4M12 7a5 5 0 100 10 5 5 0 000-10z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </button>
@@ -146,7 +194,9 @@ if (avatar && menu) {
           <a href="/profile">My profile</a>
           <a href="/bikes">My Garage</a>
           <a href="/add-bike">Add Bike</a>
-          <a href="/logout">Logout</a>
+          {% if session.get('user_id') %}
+            <a href="{{ url_for('logout') }}">Logout</a>
+          {% endif %}
         </div>
       </div>
     {% endif %}
@@ -154,7 +204,7 @@ if (avatar && menu) {
 </nav>
 <!-- Search modal -->
 <div id="navSearchModal">
-  <div class="panel">
+  <div class="panel nav-search-panel">
     <div style="display:flex; gap:8px; align-items:center;">
       <input id="navSearchInput" type="search" placeholder="Search users by username..." aria-label="Search users">
       <button id="navSearchClose" class="btn" style="background:transparent; color:var(--muted); padding:8px;">Close</button>
@@ -162,6 +212,9 @@ if (avatar && menu) {
     <div id="navSearchResults" style="margin-top:8px; max-height:320px; overflow:auto;"></div>
   </div>
 </div>
+
+<!-- Debug bar for safe area (remove after confirming notch fix) -->
+<div class="safe-area-debug-bar"></div>
 
 <script>
   // Initialize theme IMMEDIATELY (before DOMContentLoaded) so it applies on page load
@@ -334,3 +387,22 @@ if (avatar && menu) {
 </script>
 <script src="{{ url_for('static', filename='js/native-bridge.js') }}"></script>
 {% endif %}
+
+<style>
+  /* Fix user search modal background in dark mode */
+  .nav-search-panel {
+    background: var(--card-bg, #fff);
+    color: var(--text, #111);
+    border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(15,23,36,0.13);
+    padding: 18px 16px;
+    transition: background 0.3s, color 0.3s;
+  }
+  body.dark .nav-search-panel {
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), var(--card-bg, #23242a));
+    color: var(--text, #f7f7f7);
+  }
+  #navSearchModal {
+    z-index: 99999;
+  }
+</style>

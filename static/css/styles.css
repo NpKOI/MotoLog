@@ -1,15 +1,185 @@
+.mobile-navbar .logo-img {
+  position: static !important;
+  margin: 0 !important;
+  z-index: 1 !important;
+}
+.container {
+  position: relative;
+  z-index: 2;
+}
+@media (max-width: 700px) {
+  /* Ensure nothing can appear above the navbar */
+  body, html {
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+  }
+  .mobile-dashboard-container {
+    margin-top: 0 !important;
+    /* padding-top already set for navbar */
+  }
+  /* Pin navbar to top, always visible */
+  .mobile-navbar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 9999 !important;
+    will-change: transform;
+  }
+}
+.mobile-login-card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+  padding: 28px 18px 22px 18px;
+  margin-bottom: 18px;
+}
+.mobile-login-card h2 {
+  margin: 0 0 12px 0;
+  font-size: 1.5rem;
+  color: var(--primary-700, #1a237e);
+  text-align: center;
+}
+.form-group {
+  margin-bottom: 18px;
+}
+label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--primary-700, #1a237e);
+  font-weight: 500;
+  font-size: 1rem;
+}
+input {
+  width: 100%;
+  min-width: 220px;
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  background: #fafbfc;
+  margin-bottom: 2px;
+  color: #222;
+  box-sizing: border-box;
+}
+.btn-primary {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(90deg, var(--primary-500, #3f51b5), var(--primary-600, #3949ab));
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-top: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-primary:active {
+  background: var(--primary-700, #1a237e);
+}
+.mobile-links {
+  text-align: center;
+  margin-top: 18px;
+  font-size: 0.98rem;
+}
+.mobile-links a {
+  color: var(--primary-600, #3949ab);
+  text-decoration: none;
+  margin: 0 8px;
+}
+.mobile-links a:active {
+  color: var(--primary-800, #283593);
+}
+.flash-messages {
+  margin-bottom: 12px;
+}
+/* Flash message styling */
+.flash-message {
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  font-size: 0.98rem;
+  background: #e8f5e9;
+  color: #388e3c;
+}
+.flash-message.error, .flash-message[data-category="error"] {
+  background: #ffe0e0;
+  color: #b71c1c;
+}
+.flash-message.success, .flash-message[data-category="success"] {
+  background: #e8f5e9;
+  color: #388e3c;
+}
+@media (prefers-color-scheme: dark) {
+  .flash-message {
+    background: #1b2b1b;
+    color: #4caf50;
+  }
+  .flash-message.error, .flash-message[data-category="error"] {
+    background: #2a1a1a;
+    color: #ff5252;
+  }
+  .flash-message.success, .flash-message[data-category="success"] {
+    background: #1b2b1b;
+    color: #4caf50;
+  }
+}
+@media (prefers-color-scheme: dark) {
+  body, .mobile-login-container {
+    background: #181a20 !important;
+  }
+  body.dark .form-card, body.dark .edit-card {
+    background: #23242a !important;
+  }
+  .mobile-login-card {
+    background: #23242a !important;
+    color: #f7f7f7;
+  }
+  input, textarea, select {
+    background-color: #23242a !important;
+    color: #f7f7f7 !important;
+    border: 1px solid #444 !important;
+  }
+  label {
+    color: #bfc7d5 !important;
+  }
+}
 /* iOS notch safe area support for mobile navbar */
+/* Only one fixed, top-pinned mobile-navbar rule allowed! */
 @media (max-width: 700px) {
   .mobile-navbar {
-    padding-top: env(safe-area-inset-top, 20px) !important;
-    margin-top: 0 !important;
-    position: sticky !important;
+    position: fixed !important;
     top: 0 !important;
-    z-index: 2000 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100vw !important;
+    height: 52px !important;
     background: var(--navbar-bg, #fff) !important;
+    z-index: 9999 !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+    padding: 0 12px !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    gap: 0 !important;
+    min-width: 0 !important;
+    transition: background 0.3s;
+    will-change: transform;
+    pointer-events: auto;
   }
-  .dashboard-container {
-    padding-top: calc(env(safe-area-inset-top, 20px) + 12px) !important;
+  .mobile-dashboard-container {
+    margin-top: 52px !important;
+    padding-top: 0 !important;
+  }
+  body, html {
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
   }
 }
 /* Mobile profile dropdown menu vertical layout */
@@ -276,21 +446,19 @@ body.dark .leaderboard-row-mobile.leaderboard-self::after {
     width: 44px !important;
     justify-content: center !important;
   }
-  .mobile-navbar {
-    position: relative !important;
-  }
+  /* Remove any relative positioning from .mobile-navbar */
 }
 /* FINAL FIX: Compact mobile navbar, always at top, all links visible, no overlay */
 @media (max-width: 700px) {
   .mobile-navbar {
     position: fixed !important;
-    top: 0 !important;
+    top: max(env(safe-area-inset-top, 0px), 44px) !important;
     left: 0 !important;
     right: 0 !important;
     width: 100vw !important;
     height: 52px !important;
     background: var(--navbar-bg) !important;
-    z-index: 1000 !important;
+    z-index: 9999 !important;
     display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
@@ -302,15 +470,35 @@ body.dark .leaderboard-row-mobile.leaderboard-self::after {
     gap: 0 !important;
     min-width: 0 !important;
     transition: background 0.3s;
+    will-change: transform;
+    pointer-events: auto;
   }
+  .mobile-dashboard-container {
+    margin-top: calc(max(env(safe-area-inset-top, 0px), 44px) + 52px) !important;
+    padding-top: 0 !important;
+  }
+  body, html {
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+  }
+}
   :root {
     --navbar-bg: #23242a;
   }
   body:not(.dark) {
     --navbar-bg: #f7f7f7;
+    background: #f4f6fa !important;
+  }
+
+  .container {
+    background: #fcfcfe;
+    border-radius: 14px;
+    box-shadow: 0 2px 24px rgba(0,0,0,0.06);
   }
   body.dark {
     --navbar-bg: #23242a;
+    background: #181a20 !important;
   }
   body.dark .mobile-navbar {
     --navbar-bg: #23242a;
@@ -457,7 +645,6 @@ body.dark .leaderboard-row-mobile.leaderboard-self::after {
     box-shadow: 0 2px 8px rgba(0,0,0,0.10) !important;
   }
   /* Only one .nav-links rule should exist for mobile, see above */
-  }
   .mobile-navbar .nav-actions {
     display: flex !important;
     align-items: center !important;
@@ -531,10 +718,9 @@ body.dark .leaderboard-row-mobile.leaderboard-self::after {
     align-items: center !important;
   }
   body {
-    padding-top: 44px !important;
+    padding-top: max(env(safe-area-inset-top, 0px), 88px) !important;
   }
-}
-/* Debug: Make mobile navbar visually distinct and compact */
+/* --- End of main mobile navbar styles --- */
 @media (max-width: 700px) {
   .mobile-navbar {
     background: var(--navbar-bg) !important;
@@ -920,7 +1106,7 @@ padding:28px; border-radius:16px; box-shadow:var(--shadow-2); max-width:540px; m
 .form-group input, .form-group textarea, .form-group select{
 width:100%; padding:12px 14px; border-radius:10px; border:1px solid color-mix(in srgb,var(--muted) 10%, transparent); background:transparent;
 transition: box-shadow var(--fast) var(--ease), border-color var(--fast) var(--ease);
-color: var(--text); font-family: inherit;
+color: var(--text); font-family: inherit; font-size: 1rem;
 }
 .form-group input:focus, .form-group textarea:focus, .form-group select:focus { box-shadow: 0 8px 30px rgba(86,118,240,0.08); border-color:var(--primary-500); }
 
@@ -1029,10 +1215,14 @@ white-space: nowrap;
 /* Inputs and textareas adapt to dark mode */
 .form-group input,
 .form-group textarea,
-.form-group select,
-input[type="text"],
-input[type="search"],
-textarea {
+.form-group select {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  transition: box-shadow var(--fast) var(--ease), border-color var(--fast) var(--ease);
+  font-family: inherit;
+}
+input, textarea, select {
 color: var(--text);
 background: transparent;
 border: 1px solid color-mix(in srgb,var(--muted) 10%, transparent);
@@ -1059,6 +1249,8 @@ font-family: inherit;
 /* ---------- Dark-mode overrides for inline-white backgrounds and other common issues ---------- /
 / These rules help when templates include inline styles like background: white; or use .profile-section etc. */
 body.dark .flash-message,
+body.dark .edit-bike-container,
+body.dark .edit-ride-container,
 body.dark .profile-section,
 body.dark .form-card,
 body.dark .edit-card,
@@ -1071,6 +1263,27 @@ background: linear-gradient(180deg, rgba(255,255,255,0.02), var(--card-bg));
 color: var(--text);
 border-color: rgba(255,255,255,0.03);
 box-shadow: var(--shadow-1);
+}
+
+body.dark .flash-message.success,
+body.dark .flash-message[data-category="success"] {
+  background: linear-gradient(180deg, #173324, #1f4d36) !important;
+  color: #7ef3ac !important;
+  border: 1px solid #2f7a56 !important;
+}
+
+body.dark .flash-message.error,
+body.dark .flash-message[data-category="error"] {
+  background: linear-gradient(180deg, #3b1d24, #52242f) !important;
+  color: #ff9cab !important;
+  border: 1px solid #8a3a4b !important;
+}
+
+body.dark .flash-message.info,
+body.dark .flash-message[data-category="info"] {
+  background: linear-gradient(180deg, #1d2d4a, #243861) !important;
+  color: #9ec5ff !important;
+  border: 1px solid #375a96 !important;
 }
 
 /* Force readable text color for elements that might be light in templates */
@@ -1088,6 +1301,11 @@ color: var(--text);
 /* Make sure links/buttons remain visible */
 body.dark a, body.dark a.nav-link { color: var(--primary-600); }
 body.dark .btn, body.dark .btn-secondary { color: white; }
+
+body.dark .profile-section .stat-label, body.dark .profile-section .stat-value {
+  color: var(--text) !important;
+}
+
 
 /* Profile menu: hidden/show (keeps consistent) */
 .profile { position: relative; display: inline-block; }
@@ -1223,6 +1441,15 @@ body.dark [style*="color: #333333"],
 body.dark [style*="color:#333333"] {
   color: var(--text) !important;
 }
+body.dark .user-connections .stat-label, body.dark .user-connections .stat-value {
+  color: var(--text) !important;
+}
+
+body.dark .user-card a {
+  color: var(--text) !important;
+}
+
+
 
 /* 4) Ensure form inputs and labels remain visible in dark mode (higher specificity) */
 body.dark .form-group label,
@@ -1233,7 +1460,14 @@ body.dark select,
 body.dark .comment-text,
 body.dark .ride-details-public,
 body.dark .ride-description,
-body.dark .profile-bio,
+body.dark .profile-bio {
+  color: var(--text) !important;
+}
+
+body:not(.dark) input, body:not(.dark) textarea, body:not(.dark) select {
+    background-color: #fff !important;
+    color: #222 !important;
+}
 body.dark .stat-label {
   color: var(--text) !important;
 }
@@ -1246,6 +1480,17 @@ body.dark .stat-label {
 }
 body.dark .dashboard-container a:not(.nav-link):not(.action-btn):not(.btn) {
   color: var(--primary-600);
+}
+
+body.dark .conversation-item .conv-name,
+body.dark .conversation-item h4,
+body.dark .conversation-item .user-name {
+  color: var(--text) !important;
+}
+
+body.dark .conversation-item .conv-time,
+body.dark .conversation-item p {
+  color: var(--muted) !important;
 }
 
 /* 6) Special: conversation/message bubbles — ensure text contrast */
@@ -1362,12 +1607,18 @@ img { max-width: 100%; height: auto; display: inline-block; }
 
 /* Navbar small logo (left corner) */
 .logo-img {
-  width: 44px !important;
-  height: 44px !important;
-  object-fit: contain;
-  display: inline-block;
-  vertical-align: middle;
-  border-radius: 8px;
+  width: 36px !important;
+  height: 36px !important;
+  object-fit: contain !important;
+  display: inline-block !important;
+  vertical-align: middle !important;
+  border-radius: 8px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  max-width: 36px !important;
+  max-height: 36px !important;
+  position: static !important;
+  z-index: 1 !important;
 }
 
 /* Hero logo (dashboard) */
@@ -1381,7 +1632,8 @@ img { max-width: 100%; height: auto; display: inline-block; }
 
 /* Very large images fallback: cap size so they can't overflow entire page */
 .logo-img, .logo-hero {
-  max-width: 220px;
+  max-width: 36px !important;
+  max-height: 36px !important;
 }
 
 /* If a template used the logo as a background accidentally, ensure it doesn't tile */
@@ -1661,8 +1913,10 @@ html, body {
     font-size: 1.08em !important;
     padding: 13px 0 !important;
     border-radius: 8px !important;
-    width: 100% !important;
     box-sizing: border-box !important;
+  }
+  .form-card .btn, .edit-card .btn {
+    width: 100% !important;
   }
   ._navbar, .navbar {
     flex-direction: column !important;
@@ -1712,5 +1966,162 @@ html, body {
   /* Hide left hero on login/register for mobile, or stack below form */
   .login-hero, .register-hero {
     display: none !important;
+  }
+}
+
+/* ===== Mobile Drawer Navbar (authoritative) ===== */
+@media (max-width: 700px) {
+  body {
+    padding-top: calc(max(env(safe-area-inset-top, 0px), 0px) + 56px) !important;
+  }
+
+  .mobile-navbar.mobile-navbar--hamburger {
+    position: fixed !important;
+    top: max(env(safe-area-inset-top, 0px), 0px) !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 56px !important;
+    width: 100vw !important;
+    z-index: 11000 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 0 10px !important;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--card-bg) 96%, var(--glass) 4%), var(--card-bg)) !important;
+    box-shadow: var(--shadow-1) !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--muted) 10%, transparent) !important;
+  }
+
+  .mobile-navbar.mobile-navbar--hamburger .mobile-brand-link {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    text-decoration: none !important;
+    color: var(--text) !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+    margin-left: 8px !important;
+  }
+
+  .mobile-navbar.mobile-navbar--hamburger .brand-text {
+    color: var(--primary-600) !important;
+    font-weight: 800 !important;
+    font-size: 1.05rem !important;
+  }
+
+  .mobile-navbar.mobile-navbar--hamburger .logo-img {
+    width: 30px !important;
+    height: 30px !important;
+    border-radius: 8px !important;
+    object-fit: cover !important;
+  }
+
+  .mobile-menu-toggle {
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 10px !important;
+  }
+
+  .mobile-drawer-backdrop {
+    position: fixed !important;
+    inset: 0 !important;
+    background: rgba(0, 0, 0, 0.45) !important;
+    z-index: 11010 !important;
+  }
+
+  .mobile-drawer {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    width: min(82vw, 320px) !important;
+    z-index: 11020 !important;
+    background: linear-gradient(180deg, var(--card-bg), color-mix(in srgb, var(--card-bg) 96%, var(--glass) 4%)) !important;
+    box-shadow: var(--shadow-2) !important;
+    transform: translateX(-105%) !important;
+    transition: transform 220ms var(--ease) !important;
+    padding: max(env(safe-area-inset-top, 0px), 12px) 10px 16px 10px !important;
+    overflow-y: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+  }
+
+  .mobile-drawer.open {
+    transform: translateX(0) !important;
+  }
+
+  .mobile-drawer-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    margin-bottom: 8px !important;
+    padding-bottom: 8px !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--muted) 10%, transparent) !important;
+  }
+
+  .mobile-drawer-user {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    min-width: 0 !important;
+  }
+
+  .mobile-drawer-avatar {
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
+    flex-shrink: 0 !important;
+  }
+
+  .mobile-drawer-avatar-fallback {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #fff !important;
+    font-weight: 800 !important;
+    background: linear-gradient(135deg, var(--primary-500), var(--primary-600)) !important;
+  }
+
+  .mobile-drawer-username {
+    font-size: 0.95rem !important;
+    font-weight: 700 !important;
+    color: var(--text) !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .mobile-drawer-link {
+    display: block !important;
+    padding: 11px 12px !important;
+    border-radius: 10px !important;
+    color: var(--text) !important;
+    text-decoration: none !important;
+    font-weight: 700 !important;
+    background: transparent !important;
+    border: 1px solid transparent !important;
+    transition: background var(--fast) var(--ease), color var(--fast) var(--ease), border-color var(--fast) var(--ease) !important;
+  }
+
+  .mobile-drawer-link:hover,
+  .mobile-drawer-link:focus {
+    background: color-mix(in srgb, var(--primary-500) 8%, transparent) !important;
+    color: var(--primary-600) !important;
+    border-color: color-mix(in srgb, var(--primary-500) 16%, transparent) !important;
+  }
+
+  body.mobile-menu-open {
+    overflow: hidden !important;
+  }
+
+  .mobile-dashboard-container,
+  .mobile-container,
+  .container {
+    max-width: 520px !important;
+    margin: 0 auto !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
   }
 }

@@ -1,3 +1,5 @@
+
+
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 import re
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -8,14 +10,22 @@ import urllib.parse, urllib.request, json
 from datetime import datetime, timedelta
 import time
 
+
 app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET', 'dev_secret')
 
 # OSRM Configuration
+@app.route('/logout')
+def logout():
+    session.clear()
+    flash('You have been logged out.', 'success')
+    return redirect(url_for('login'))
+ 
+# OSRM Configuration
 OSRM_URL = os.environ.get('OSRM_URL', 'http://localhost:5000')
 
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
-ALLOWED_EXT = {'png','jpg','jpeg','gif'}
+ALLOWED_EXT = {'png','jpg','jpeg','gif','webp','avif','heic','heif'}
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
@@ -67,20 +77,21 @@ def query_db(query, args=(), one=False):
     
     for attempt in range(max_retries):
         try:
-            conn = sqlite3.connect('moto_log.db', timeout=10.0)
-            conn.row_factory = sqlite3.Row
-            # Enable WAL mode for better concurrency
-            try:
-                conn.execute('PRAGMA journal_mode=WAL')
-                conn.execute('PRAGMA foreign_keys = ON')
-            except Exception:
-                pass
-            cur = conn.cursor()
-            cur.execute(query, args)
-            rv = cur.fetchall()
-            conn.commit()
-            conn.close()
-            return (rv[0] if rv else None) if one else rv
+            with sqlite3.connect('moto_log.db', timeout=10.0) as conn:
+                conn.row_factory = sqlite3.Row
+                try:
+                    conn.execute('PRAGMA journal_mode=WAL')
+                    conn.execute('PRAGMA foreign_keys = ON')
+                except Exception:
+                    pass
+                cur = conn.cursor()
+                cur.execute(query, args)
+                if query.strip().lower().startswith('select'):
+                    rv = cur.fetchall()
+                    return (rv[0] if rv else None) if one else rv
+                else:
+                    conn.commit()
+                    return cur.lastrowid if query.strip().lower().startswith('insert') else cur.rowcount
         except sqlite3.OperationalError as e:
             last_error = e
             if attempt < max_retries - 1:
@@ -427,6 +438,10 @@ def login():
         elif not check_password_hash(user['password'], password):
             flash('Incorrect password. Please try again.', 'error')
         else:
+            if 'remember' in request.form:
+                session.permanent = True
+            else:
+                session.permanent = False
             session['user_id'] = user['id']
             session['email'] = user['email']
             session['username'] = user['username']
@@ -453,6 +468,18 @@ def dashboard():
         row = dict(r)
         row['tag_groups'] = groups
         row['tag_list'] = flat
+        # Format the date with time for better display
+        if row.get('date'):
+            try:
+                if 'T' in str(row['date']):
+                    dt = datetime.fromisoformat(str(row['date']).replace('Z', '+00:00'))
+                    row['formatted_date'] = dt.strftime('%B %d, %Y at %I:%M %p')
+                else:
+                    row['formatted_date'] = str(row['date'])
+            except Exception:
+                row['formatted_date'] = str(row['date'])
+        else:
+            row['formatted_date'] = 'Unknown'
         rides.append(row)
 
     total_rides = len(raw_rides)
@@ -525,13 +552,35 @@ def profile():
         ORDER BY f.created_at DESC
     ''', (user_id,))
 
+    raw_rides = query_db('SELECT * FROM rides WHERE user_id = ? ORDER BY date DESC LIMIT 10', (user_id,))
+    rides = []
+    for r in raw_rides:
+        groups, flat = categorize_tags(r['tags'])
+        row = dict(r)
+        row['tag_groups'] = groups
+        row['tag_list'] = flat
+
+        if row.get('date'):
+            try:
+                if 'T' in str(row['date']):
+                    dt = datetime.fromisoformat(str(row['date']).replace('Z', '+00:00'))
+                    row['formatted_date'] = dt.strftime('%B %d, %Y')
+                else:
+                    row['formatted_date'] = str(row['date'])
+            except Exception:
+                row['formatted_date'] = str(row['date'])
+        else:
+            row['formatted_date'] = 'Unknown'
+
+        rides.append(row)
+
     if is_mobile():
         return render_template('profile_mobile.html', user=user, total_rides=total_rides, 
                                total_distance=total_distance, followers=followers, 
-                               following=following)
+                               following=following, rides=rides)
     return render_template('profile.html', user=user, total_rides=total_rides, 
                            total_distance=total_distance, followers=followers, 
-                           following=following)
+                           following=following, rides=rides)
 
 # View other user's public profile
 @app.route('/user/<int:user_id>')
@@ -614,12 +663,18 @@ def bikes():
         return redirect(url_for('login'))
     user_id = session['user_id']
     bikes = query_db('SELECT * FROM bikes WHERE user_id = ?', (user_id,))
+    if is_mobile():
+        user = query_db('SELECT * FROM users WHERE id = ?', (user_id,), one=True)
+        return render_template('user_garage_mobile.html', user=user, bikes=bikes, is_mobile=True)
     return render_template('bikes.html', bikes=bikes)
 
 @app.route('/add-bike', methods=['GET','POST'])
 def add_bike():
     if 'user_id' not in session:
         return redirect(url_for('login'))
+    user = None
+    if 'user_id' in session:
+        user = query_db('SELECT * FROM users WHERE id = ?', (session['user_id'],), one=True)
     if request.method == 'POST':
         user_id = session['user_id']
         name = request.form.get('name','').strip()
@@ -639,13 +694,28 @@ def add_bike():
             rel = os.path.relpath(dest, start='static').replace('\\','/')
             image_path = f"/static/{rel}"
 
+        # handle additional bike photos
+        additional_photos = []
+        photos_files = request.files.getlist('bike_photos')
+        for idx, photo_file in enumerate(photos_files):
+            if photo_file and photo_file.filename and allowed_file(photo_file.filename):
+                fn = secure_filename(photo_file.filename)
+                dest = os.path.join(app.config['UPLOAD_FOLDER'], f"bike_{user_id}_photo_{idx}_{fn}")
+                photo_file.save(dest)
+                rel = os.path.relpath(dest, start='static').replace('\\','/')
+                additional_photos.append(f"/static/{rel}")
+
+        additional_photos_json = json.dumps(additional_photos)
+
         if not name:
             flash('Bike name required.', 'error')
         else:
-            query_db('INSERT INTO bikes (user_id,name,make_model,year,odo,image,notes,is_private) VALUES (?,?,?,?,?,?,?,?)',
-                     (user_id, name, make_model, year, odo, image_path, notes, is_private))
+            query_db('INSERT INTO bikes (user_id,name,make_model,year,odo,image,notes,is_private,additional_photos) VALUES (?,?,?,?,?,?,?,?,?)',
+                     (user_id, name, make_model, year, odo, image_path, notes, is_private, additional_photos_json))
             flash('Bike added.', 'success')
             return redirect(url_for('bikes'))
+    if is_mobile():
+        return render_template('add_bike_mobile.html', is_mobile=True, user=user)
     return render_template('add_bike.html')
 
 @app.route('/edit-bike/<int:bike_id>', methods=['GET','POST'])
@@ -673,26 +743,47 @@ def edit_bike(bike_id):
             rel = os.path.relpath(dest, start='static').replace('\\','/')
             image_path = f"/static/{rel}"
 
-        # Handle additional photos
+        # Handle additional photos (append to existing photos instead of replacing)
+        existing_additional_photos = []
+        if 'additional_photos' in bike.keys() and bike['additional_photos']:
+            try:
+                existing_additional_photos = json.loads(bike['additional_photos'])
+                if not isinstance(existing_additional_photos, list):
+                    existing_additional_photos = []
+            except Exception:
+                existing_additional_photos = []
+
         additional_photos = []
         photos_files = request.files.getlist('bike_photos')
         for photo_file in photos_files:
             if photo_file and photo_file.filename and allowed_file(photo_file.filename):
                 fn = secure_filename(photo_file.filename)
-                dest = os.path.join(app.config['UPLOAD_FOLDER'], f"bike_{session['user_id']}_photo_{len(additional_photos)}_{fn}")
+                photo_index = len(existing_additional_photos) + len(additional_photos)
+                dest = os.path.join(app.config['UPLOAD_FOLDER'], f"bike_{session['user_id']}_photo_{photo_index}_{fn}")
                 photo_file.save(dest)
                 rel = os.path.relpath(dest, start='static').replace('\\','/')
                 additional_photos.append(f"/static/{rel}")
 
         # Store additional photos as JSON
         import json
-        additional_photos_json = json.dumps(additional_photos) if additional_photos else bike.get('additional_photos', '[]')
+        # sqlite3.Row uses mapping access, use indexing rather than .get()
+        all_additional_photos = existing_additional_photos + additional_photos
+        additional_photos_json = json.dumps(all_additional_photos)
 
         query_db('UPDATE bikes SET name=?, make_model=?, year=?, odo=?, image=?, notes=?, is_private=?, additional_photos=? WHERE id=?',
                  (name, make_model, year, odo, image_path, notes, is_private, additional_photos_json, bike_id))
         flash('Bike updated.', 'success')
         return redirect(url_for('bikes'))
-    return render_template('edit_bike.html', bike=dict(bike))
+    import json
+    bike_dict = dict(bike)
+    if 'additional_photos' in bike_dict and bike_dict['additional_photos']:
+        try:
+            bike_dict['additional_photos'] = json.loads(bike_dict['additional_photos'])
+        except Exception:
+            bike_dict['additional_photos'] = []
+    else:
+        bike_dict['additional_photos'] = []
+    return render_template('edit_bike.html', bike=bike_dict)
 
 @app.route('/bike/<int:bike_id>')
 def view_bike(bike_id):
@@ -746,7 +837,7 @@ def view_bike(bike_id):
     # Get additional photos
     try:
         import json
-        additional_photos = json.loads(bike.get('additional_photos', '[]'))
+        additional_photos = json.loads(bike['additional_photos'] if 'additional_photos' in bike.keys() else '[]')
         for photo_url in additional_photos:
             photos.append({'url': photo_url, 'type': 'additional'})
     except:
@@ -765,6 +856,8 @@ def user_garage(user_id):
     # Get all bikes for this user (no private filtering for now)
     bikes = query_db('SELECT * FROM bikes WHERE user_id = ? ORDER BY name', (user_id,))
     
+    if is_mobile():
+        return render_template('user_garage_mobile.html', user=user, bikes=bikes, is_mobile=True)
     return render_template('user_garage.html', user=user, bikes=bikes)
 
 # -------- Group chat routes --------
@@ -1986,6 +2079,17 @@ def events_browse():
         event['category_label'] = EVENT_CATEGORIES.get(event.get('category'), event.get('category'))
         events.append(event)
 
+    if is_mobile():
+        return render_template('events_mobile.html',
+                               events=events,
+                               categories=EVENT_CATEGORIES,
+                               current_filter=category,
+                               search_query=search,
+                               sort_by=sort_by,
+                               cities=cities,
+                               event_scope=scope,
+                               city_filter=city_filter,
+                               is_mobile=True)
     return render_template('events_browse.html',
                            events=events,
                            categories=EVENT_CATEGORIES,
@@ -2738,6 +2842,18 @@ def ride_history():
     shared_count = 0
     for ride in rides:
         ride_dict = dict(ride)
+        # Format the date with time for better display
+        if ride_dict.get('date'):
+            try:
+                if 'T' in str(ride_dict['date']):
+                    dt = datetime.fromisoformat(str(ride_dict['date']).replace('Z', '+00:00'))
+                    ride_dict['formatted_date'] = dt.strftime('%B %d, %Y at %I:%M %p')
+                else:
+                    ride_dict['formatted_date'] = str(ride_dict['date'])
+            except Exception:
+                ride_dict['formatted_date'] = str(ride_dict['date'])
+        else:
+            ride_dict['formatted_date'] = 'Unknown'
         if ride_dict['bike_id']:
             bike = query_db('SELECT name FROM bikes WHERE id = ?', (ride_dict['bike_id'],), one=True)
             ride_dict['bike_name'] = bike['name'] if bike else 'Unknown Bike'
@@ -2893,6 +3009,7 @@ def api_delete_ride():
 
 
 # ======== GPS RIDE TRACKING SYSTEM ========
+@app.route('/track-ride')
 @app.route('/track_ride')
 def track_ride():
     """GPS ride tracking page"""

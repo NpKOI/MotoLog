@@ -136,12 +136,16 @@
     
     .bike-select {
       width: 100%;
-      padding: 8px;
-      border-radius: 8px;
-      border: 1px solid color-mix(in srgb, var(--muted) 20%, transparent);
+      padding: 14px;
+      border-radius: 10px;
+      border: 1.5px solid color-mix(in srgb, var(--muted) 20%, transparent);
       background: transparent;
       color: var(--text);
-      margin-bottom: 12px;
+      margin-bottom: 18px;
+      font-size: 1.25rem;
+      font-weight: 500;
+      min-height: 48px;
+      min-width: 240px;
     }
     
     .gpx-upload {
@@ -464,7 +468,9 @@
 </head>
 <body>
   <div class="dashboard-container">
-    {% include '_navbar.html' %}
+    {% if not request.args.get('app') %}
+      {% include '_navbar.html' %}
+    {% endif %}
     
     <div class="track-container">
       <!-- Map -->
@@ -472,7 +478,8 @@
       
       <!-- Control Panel -->
       <div class="track-panel">
-        <h2 style="margin: 0 0 12px 0; color: var(--text);">🏍️ Track Ride</h2>
+        <!-- Removed big logo from header -->
+        <h2 style="margin: 0 0 12px 0; color: var(--text);">Track Ride</h2>
         
         <div class="track-status status-idle" id="status">
           Ready to ride

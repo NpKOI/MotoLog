@@ -38,7 +38,9 @@
       margin-bottom: 18px;
     }
     .mobile-register-card h2 {
-    {% include '_navbar.html' %}
+    {% if not request.args.get('app') %}
+      {% include '_navbar.html' %}
+    {% endif %}
       margin-bottom: 18px;
     }
     label {

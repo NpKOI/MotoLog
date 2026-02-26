@@ -20,7 +20,9 @@
 </head>
 <body>
   <div class="mobile-container">
-    {% include '_navbar.html' %}
+    {% if not request.args.get('app') %}
+      {% include '_navbar.html' %}
+    {% endif %}
     <div class="profile-header">
       <div class="profile-avatar">
         {% if user['profile_pic'] %}

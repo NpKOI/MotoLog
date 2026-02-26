@@ -8,7 +8,9 @@
 </head>
 <body>
   <div class="dashboard-container">
-    {% include '_navbar.html' %}
+    {% if not request.args.get('app') %}
+      {% include '_navbar.html' %}
+    {% endif %}
 
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
@@ -74,7 +76,7 @@
               <div style="flex:1;">
                 <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start;">
                   <div>
-                    <div style="font-weight:800; color:var(--primary-600); font-size:1rem;">{{ ride['date'] }}</div>
+                    <div style="font-weight:800; color:var(--primary-600); font-size:1rem;">{{ ride['formatted_date'] }}</div>
                     <div style="color:var(--muted); margin-top:6px;">{{ ride['description'] or 'No description' }}</div>
                   </div>
                   <div style="text-align:right;">

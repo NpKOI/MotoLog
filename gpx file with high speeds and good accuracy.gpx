@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="Gemini-AI" xmlns="http://www.topografix.com/GPX/1/1">
+  <trk>
+    <name>Burgas Accurate Street Follower</name>
+    <trkseg>
+      <trkpt lat="42.49138" lon="27.47352"><time>2026-02-25T10:00:00Z</time></trkpt>
+      <trkpt lat="42.49250" lon="27.47400"><time>2026-02-25T10:01:00Z</time></trkpt>
+      
+      <trkpt lat="42.49385" lon="27.47645"><time>2026-02-25T10:01:30Z</time></trkpt>
+      <trkpt lat="42.49520" lon="27.47780"><time>2026-02-25T10:01:45Z</time></trkpt>
+      <trkpt lat="42.49750" lon="27.47950"><time>2026-02-25T10:02:10Z</time></trkpt>
+      
+      <trkpt lat="42.50230" lon="27.47050"><time>2026-02-25T10:03:00Z</time></trkpt>
+      <trkpt lat="42.50650" lon="27.46780"><time>2026-02-25T10:03:30Z</time></trkpt>
+      <trkpt lat="42.51180" lon="27.46450"><time>2026-02-25T10:04:00Z</time></trkpt>
+      
+      <trkpt lat="42.51730" lon="27.46080"><time>2026-02-25T10:04:40Z</time></trkpt>
+      <trkpt lat="42.51780" lon="27.46000"><time>2026-02-25T10:04:45Z</time></trkpt>
+      <trkpt lat="42.51750" lon="27.45900"><time>2026-02-25T10:04:50Z</time></trkpt>
+
+      <trkpt lat="42.51500" lon="27.45500"><time>2026-02-25T10:10:00Z</time></trkpt>
+      <trkpt lat="42.51400" lon="27.45400"><time>2026-02-25T10:11:00Z</time></trkpt>
+    </trkseg>
+  </trk>
+</gpx>

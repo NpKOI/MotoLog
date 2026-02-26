@@ -9,7 +9,9 @@
 <body>
   <div class="dashboard-container">
     {% set is_mobile = is_mobile() if is_mobile is not defined else is_mobile %}
-    {% include '_navbar.html' %}
+    {% if not request.args.get('app') %}
+      {% include '_navbar.html' %}
+    {% endif %}
 
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}

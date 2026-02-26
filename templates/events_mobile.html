@@ -1,0 +1,60 @@
+{% extends 'base_mobile.html' %}
+{% block title %}Events{% endblock %}
+{% block content %}
+{% if not request.args.get('app') %}
+  {% include '_navbar.html' %}
+{% endif %}
+<div class="mobile-container">
+  <div class="mobile-section">
+    <h2 style="font-size:1.2rem; font-weight:700; color:var(--primary-600);">🏍️ Events & Meetups</h2>
+    <p style="color:var(--muted);font-size:1.1em;">Events content goes here.</p>
+  </div>
+  {# Place your events list rendering here, if needed #}
+  {% if events %}
+    <div class="events-grid" style="display:flex;flex-direction:column;gap:1rem;">
+      {% for event in events %}
+        <div class="event-card" style="border-radius:10px;overflow:hidden;box-shadow:var(--shadow-1);">
+          {# Cover image removed to prevent big logo covering page #}
+          <a href="{{ url_for('event_detail', event_id=event['id']) }}" style="text-decoration:none;color:inherit;display:block;">
+            <div style="width:100%;height:120px;display:flex;align-items:center;justify-content:center;font-size:2em;background:linear-gradient(135deg,var(--primary-500),var(--primary-600));">{{ event['category_label'][0] }}</div>
+          </a>
+          <div class="event-card-content" style="padding:1rem;">
+            <span class="event-card-category" style="font-size:0.85em;color:var(--primary-500);">{{ event['category_label'].split(' ', 1)[1] if ' ' in event['category_label'] else event['category_label'] }}</span>
+            <h3 class="event-card-title" style="font-size:1.1em;margin:0 0 0.5rem 0;color:var(--text);">{{ event['title'][:40] }}{% if event['title']|length > 40 %}...{% endif %}</h3>
+            <p class="event-card-location" style="font-size:0.95em;color:var(--muted);margin:0.3rem 0;">📍 {{ event['location_name'][:35] }}{% if event['location_name']|length > 35 %}...{% endif %}</p>
+            <p class="event-card-datetime" style="font-size:0.95em;color:var(--muted);margin:0.3rem 0;">📅 {{ event['event_date'] }}</p>
+            <div class="event-card-footer" style="display:flex;justify-content:space-between;align-items:center;margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid var(--muted);">
+              <span class="event-card-participants" style="font-size:0.95em;color:var(--primary-600);font-weight:600;">👥 {{ event['participant_count'] }}{% if event['max_participants'] %}/{{ event['max_participants'] }}{% endif %}</span>
+              {% if event['is_full'] %}
+                <span class="event-status full" style="font-size:0.85em;background:var(--accent);color:white;padding:0.3rem 0.6rem;border-radius:6px;">FULL</span>
+              {% elif event['status'] == 'ongoing' %}
+                <span class="event-status ongoing" style="font-size:0.85em;background:#10b981;color:white;padding:0.3rem 0.6rem;border-radius:6px;">LIVE</span>
+              {% else %}
+                <span class="event-status" style="font-size:0.85em;background:var(--primary-500);color:white;padding:0.3rem 0.6rem;border-radius:6px;">{{ event['status_label'].split(' ', 1)[1] if ' ' in event['status_label'] else event['status_label'] }}</span>
+              {% endif %}
+            </div>
+            <div style="padding-top:0.5rem;display:flex;gap:0.5rem;">
+              {% if event['is_creator'] %}
+                <a href="{{ url_for('edit_event', event_id=event['id']) }}" style="flex:1;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;background:transparent;border:1px solid var(--muted);color:var(--text);padding:0.6rem;border-radius:6px;font-weight:700;font-size:0.95em;">⚙️ Manage</a>
+              {% elif event['is_participant'] %}
+                <form method="POST" action="{{ url_for('leave_event', event_id=event['id']) }}" style="flex:1;margin:0;">
+                  <button type="submit" style="width:100%;background:transparent;border:1px solid var(--primary-600);color:var(--primary-600);padding:0.6rem;border-radius:6px;font-weight:600;cursor:pointer;font-size:0.95em;">❌ Leave</button>
+                </form>
+              {% elif event['can_join'] %}
+                <form method="POST" action="{{ url_for('join_event', event_id=event['id']) }}" style="flex:1;margin:0;">
+                  <button type="submit" style="width:100%;background:linear-gradient(135deg,#10b981,#059669);color:white;padding:0.6rem;border:none;border-radius:6px;font-weight:600;cursor:pointer;font-size:0.95em;">✅ Join</button>
+                </form>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="no-events" style="text-align:center;padding:2rem 1rem;color:var(--muted);">
+      <h3 style="font-size:1.1em;">No events found</h3>
+      <p style="font-size:1em;">Try adjusting your filters or <a href="{{ url_for('create_event') }}" style="color:var(--primary-500);text-decoration:none;font-weight:600;">create the first event</a>!</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

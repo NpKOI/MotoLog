@@ -8,7 +8,12 @@
 </head>
 <body>
   <div class="dashboard-container" style="max-width:1100px; padding-top:36px;">
-    {% include '_navbar.html' %}
+    <div class="app-banner" style="background: linear-gradient(90deg, #3f51b5, #3949ab); color: #fff; padding: 18px 24px; border-radius: 18px 18px 0 0; margin-bottom: 12px; font-size: 1.15rem; text-align: center; font-family: 'Inter', Arial, sans-serif;">
+      <strong>MotoLog:</strong> Your personal motorcycle logbook. Track your rides, join group chats, organize events, and connect with fellow riders. Perfect for enthusiasts and casual riders alike!
+    </div>
+    {% if not request.args.get('app') %}
+      {% include '_navbar.html' %}
+    {% endif %}
 
     <main class="login-main" style="display:flex; flex-direction:row; gap:28px; align-items:stretch; margin-top:28px; min-height: 540px;">
       <!-- left hero -->

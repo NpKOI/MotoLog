@@ -22,7 +22,9 @@
 </head>
 <body>
   <div class="dashboard-container">
-    {% include '_navbar.html' %}
+    {% if not request.args.get('app') %}
+      {% include '_navbar.html' %}
+    {% endif %}
 
     <div class="form-card add-ride-form">
       <h2>🏍️ Log Your Ride</h2>

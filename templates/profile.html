@@ -57,16 +57,61 @@
       text-align: center;
     }
 
+    .clickable-stat {
+      cursor: pointer;
+      padding: 0.4rem 0.7rem;
+      border-radius: 8px;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .clickable-stat:hover {
+      background: #f0f2f5;
+      transform: translateY(-1px);
+    }
+
     .stat-value {
       font-size: 1.8rem;
       font-weight: 700;
       color: #667eea;
     }
-
     .stat-label {
       color: #666;
       font-size: 0.9rem;
       margin-top: 0.25rem;
+    }
+    @media (prefers-color-scheme: dark) {
+      .profile-header, .profile-section {
+        background: #23242a !important;
+        color: #f7f7f7 !important;
+      }
+      .stat-label {
+        color: #bfc7d5 !important;
+      }
+      .stat-value {
+        color: #aab4f7 !important;
+      }
+      .clickable-stat:hover,
+      .ride-card,
+      .user-card {
+        background: #2c2d34 !important;
+      }
+      .tab {
+        color: #bfc7d5 !important;
+      }
+      .tab.active {
+        color: #aab4f7 !important;
+        border-bottom-color: #aab4f7 !important;
+      }
+      .ride-title,
+      .user-name {
+        color: #f7f7f7 !important;
+      }
+      .ride-meta {
+        color: #bfc7d5 !important;
+      }
+      .tabs {
+        border-bottom-color: #3a3b44 !important;
+      }
     }
 
     .profile-bio {
@@ -156,6 +201,65 @@
       padding: 2rem;
     }
 
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid #e2e8f0;
+      margin-bottom: 1.2rem;
+    }
+
+    .tab {
+      padding: 0.8rem 1rem;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      color: #666;
+      font-weight: 600;
+    }
+
+    .tab.active {
+      color: #667eea;
+      border-bottom-color: #667eea;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .ride-card {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 0.9rem;
+      border-left: 4px solid #667eea;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .ride-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    }
+
+    .ride-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: flex-start;
+      margin-bottom: 0.5rem;
+    }
+
+    .ride-title {
+      font-weight: 700;
+      color: #333;
+    }
+
+    .ride-meta {
+      color: #666;
+      font-size: 0.92rem;
+    }
+
     /* Delete confirmation modal styles */
     #confirmDeleteModal {
       display: none;
@@ -218,7 +322,9 @@
 </head>
 <body>
   <div class="dashboard-container">
-    {% include '_navbar.html' %}
+    {% if not request.args.get('app') %}
+      {% include '_navbar.html' %}
+    {% endif %}
 
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
@@ -256,19 +362,19 @@
           </div>
 
           <div class="profile-stats">
-            <div class="stat">
+            <div class="stat clickable-stat" onclick="switchTab('rides')">
               <div class="stat-value">{{ total_rides }}</div>
               <div class="stat-label">Rides</div>
             </div>
-            <div class="stat">
+            <div class="stat clickable-stat" onclick="switchTab('rides')">
               <div class="stat-value">{{ "%.0f"|format(total_distance) }}</div>
               <div class="stat-label">km Total</div>
             </div>
-            <div class="stat">
+            <div class="stat clickable-stat" onclick="switchTab('followers')">
               <div class="stat-value">{{ followers|length }}</div>
               <div class="stat-label">Followers</div>
             </div>
-            <div class="stat">
+            <div class="stat clickable-stat" onclick="switchTab('following')">
               <div class="stat-value">{{ following|length }}</div>
               <div class="stat-label">Following</div>
             </div>
@@ -326,54 +432,88 @@
       </div>
     </div>
 
-    <!-- Followers Section -->
+    <!-- Profile Activity Section -->
     <div class="profile-section">
-      <h3>👥 Followers ({{ followers|length }})</h3>
-      {% if followers %}
-        <div class="user-grid">
-          {% for f in followers %}
-            <a href="/user/{{ f['id'] }}" style="text-decoration:none; color:inherit;">
-              <div class="user-card">
-                <div class="user-avatar">
-                  {% if f['profile_pic'] %}
-                    <img src="{{ f['profile_pic'] }}" alt="{{ f['username'] }}">
-                  {% else %}
-                    <div style="width:100%; height:100%; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); display:flex; align-items:center; justify-content:center; color:white; font-weight:bold;">{{ f['username'][0].upper() }}</div>
-                  {% endif %}
-                </div>
-                <div class="user-name">{{ f['username'] }}</div>
-              </div>
-            </a>
-          {% endfor %}
-        </div>
-      {% else %}
-        <div class="empty-state">No followers yet. Share your rides to get followers!</div>
-      {% endif %}
-    </div>
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab('rides')">Recent Rides</div>
+        <div class="tab" onclick="switchTab('followers')">Followers</div>
+        <div class="tab" onclick="switchTab('following')">Following</div>
+      </div>
 
-    <!-- Following Section -->
-    <div class="profile-section">
-      <h3>🔗 Following ({{ following|length }})</h3>
-      {% if following %}
-        <div class="user-grid">
-          {% for u in following %}
-            <a href="/user/{{ u['id'] }}" style="text-decoration:none; color:inherit;">
-              <div class="user-card">
-                <div class="user-avatar">
-                  {% if u['profile_pic'] %}
-                    <img src="{{ u['profile_pic'] }}" alt="{{ u['username'] }}">
-                  {% else %}
-                    <div style="width:100%; height:100%; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); display:flex; align-items:center; justify-content:center; color:white; font-weight:bold;">{{ u['username'][0].upper() }}</div>
-                  {% endif %}
+      <div id="rides" class="tab-content active">
+        <h3>🏍️ Recent Rides ({{ rides|length }})</h3>
+        {% if rides %}
+          {% for ride in rides %}
+            <a href="/ride/{{ ride['id'] }}" style="text-decoration:none; color:inherit;">
+              <div class="ride-card">
+                <div class="ride-head">
+                  <div>
+                    <div class="ride-title">{{ ride['title'] or 'Untitled Ride' }}</div>
+                    <div class="ride-meta">📅 {{ ride.formatted_date }}</div>
+                  </div>
+                  <div style="text-align:right;">
+                    <div class="ride-title">{{ ride['distance'] }} km</div>
+                    <div class="ride-meta">⏱️ {{ "%.2f"|format(ride['time']) }}h</div>
+                  </div>
                 </div>
-                <div class="user-name">{{ u['username'] }}</div>
+                {% if ride['description'] %}
+                  <div class="ride-meta">{{ ride['description'] }}</div>
+                {% endif %}
               </div>
             </a>
           {% endfor %}
-        </div>
-      {% else %}
-        <div class="empty-state">You're not following anyone yet. Explore riders on the leaderboard!</div>
-      {% endif %}
+        {% else %}
+          <div class="empty-state">No rides yet. Start tracking to show your recent rides here.</div>
+        {% endif %}
+      </div>
+
+      <div id="followers" class="tab-content">
+        <h3>👥 Followers ({{ followers|length }})</h3>
+        {% if followers %}
+          <div class="user-grid">
+            {% for f in followers %}
+              <a href="/user/{{ f['id'] }}" style="text-decoration:none; color:inherit;">
+                <div class="user-card">
+                  <div class="user-avatar">
+                    {% if f['profile_pic'] %}
+                      <img src="{{ f['profile_pic'] }}" alt="{{ f['username'] }}">
+                    {% else %}
+                      <div style="width:100%; height:100%; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); display:flex; align-items:center; justify-content:center; color:white; font-weight:bold;">{{ f['username'][0].upper() }}</div>
+                    {% endif %}
+                  </div>
+                  <div class="user-name">{{ f['username'] }}</div>
+                </div>
+              </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty-state">No followers yet. Share your rides to get followers!</div>
+        {% endif %}
+      </div>
+
+      <div id="following" class="tab-content">
+        <h3>🔗 Following ({{ following|length }})</h3>
+        {% if following %}
+          <div class="user-grid">
+            {% for u in following %}
+              <a href="/user/{{ u['id'] }}" style="text-decoration:none; color:inherit;">
+                <div class="user-card">
+                  <div class="user-avatar">
+                    {% if u['profile_pic'] %}
+                      <img src="{{ u['profile_pic'] }}" alt="{{ u['username'] }}">
+                    {% else %}
+                      <div style="width:100%; height:100%; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); display:flex; align-items:center; justify-content:center; color:white; font-weight:bold;">{{ u['username'][0].upper() }}</div>
+                    {% endif %}
+                  </div>
+                  <div class="user-name">{{ u['username'] }}</div>
+                </div>
+              </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty-state">You're not following anyone yet. Explore riders on the leaderboard!</div>
+        {% endif %}
+      </div>
     </div>
 
     <!-- Delete confirmation modal -->
@@ -441,6 +581,24 @@
         form.submit();
       });
     })();
+
+    function switchTab(tabName) {
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabContents.forEach(content => content.classList.remove('active'));
+
+      const tabs = document.querySelectorAll('.tab');
+      tabs.forEach(tab => tab.classList.remove('active'));
+
+      const selectedContent = document.getElementById(tabName);
+      if (selectedContent) selectedContent.classList.add('active');
+
+      const selectedTab = document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`);
+      if (selectedTab) selectedTab.classList.add('active');
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      switchTab('rides');
+    });
   </script>
 </body>
 </html>

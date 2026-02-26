@@ -109,11 +109,38 @@
     .map-toggle.active:hover {
       background: var(--primary-600);
     }
+    /* Custom Leaflet popup style for better readability */
+    .leaflet-popup-content-wrapper {
+      background: var(--card-bg, #fff);
+      color: var(--text, #111);
+      border-radius: 10px;
+      box-shadow: 0 4px 24px rgba(15,23,36,0.13);
+      font-size: 1.05em;
+    }
+    .leaflet-popup-tip {
+      background: var(--card-bg, #fff);
+    }
+    body.dark .leaflet-popup-content-wrapper,
+    .dark .leaflet-popup-content-wrapper {
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), var(--card-bg, #23242a));
+      color: var(--text, #f7f7f7);
+      border: 1px solid rgba(255,255,255,0.07);
+    }
+    body.dark .leaflet-popup-tip,
+    .dark .leaflet-popup-tip {
+      background: var(--card-bg, #23242a);
+    }
+    .leaflet-popup-content {
+      margin: 8px 12px;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
   <div class="dashboard-container">
-    {% include '_navbar.html' %}
+    {% if not request.args.get('app') %}
+      {% include '_navbar.html' %}
+    {% endif %}
     
     <div style="padding: var(--space-lg);">
       <div class="ride-details">
@@ -203,7 +230,7 @@
           {% if session.get('user_id') and session.get('user_id') == ride.user_id %}
           <a href="/edit-ride/{{ ride.id }}" class="btn btn-primary">Edit Ride</a>
           {% endif %}
-          <a href="/ride-history" class="btn btn-secondary">Back to Rides</a>
+          <a href="/ride_history" class="btn btn-secondary">Back to Rides</a>
         </div>
       </div>
     </div>

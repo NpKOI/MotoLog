@@ -47,7 +47,9 @@
 </head>
 <body>
   <div class="dashboard-container">
-    {% include '_navbar.html' %}
+    {% if not request.args.get('app') %}
+      {% include '_navbar.html' %}
+    {% endif %}
 
     <div class="form-container events-edit-form">
       <h1 style="margin-top: 0;">✏️ Edit Event</h1>

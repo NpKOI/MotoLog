@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,7 +9,7 @@
   <style>
     .mobile-dashboard-container {
       max-width: 480px;
-      margin: 0 auto;
+      margin: calc(max(env(safe-area-inset-top, 0px), 44px) + 52px) auto 0 auto;
       padding: 18px 8px 0 8px;
       min-height: 100vh;
       background: var(--bg-global);
@@ -73,11 +74,6 @@
       margin-bottom: 8px;
       transition: background 300ms var(--ease), color 300ms var(--ease);
     }
-    @media (max-width: 700px) {
-      .mobile-dashboard-container {
-        padding-top: 70px !important;
-      }
-    }
     body.dark .mobile-dashboard-container {
       background: var(--bg-global);
     }
@@ -88,8 +84,10 @@
   </style>
 </head>
 <body>
-  <div class="mobile-dashboard-container">
-    {% include '_navbar.html' %}
+{% if not request.args.get('app') %}
+  {% include '_navbar.html' %}
+{% endif %}
+  <div class="mobile-dashboard-container" style="margin-top:52px;">
 
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}

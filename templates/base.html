@@ -73,5 +73,23 @@
     {% endwith %}
     {% block content %}{% endblock %}
   </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const flashNodes = document.querySelectorAll('.flash-message');
+      flashNodes.forEach((node) => {
+        const key = `flash:${node.className}:${node.textContent.trim()}`;
+        if (sessionStorage.getItem(key)) {
+          node.remove();
+          return;
+        }
+        sessionStorage.setItem(key, '1');
+        setTimeout(() => {
+          node.style.transition = 'opacity 220ms ease';
+          node.style.opacity = '0';
+          setTimeout(() => node.remove(), 220);
+        }, 2800);
+      });
+    });
+  </script>
 </body>
 </html>

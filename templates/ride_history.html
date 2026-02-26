@@ -8,7 +8,9 @@
 </head>
 <body>
   <div class="dashboard-container">
-    {% include '_navbar.html' %}
+    {% if not request.args.get('app') %}
+      {% include '_navbar.html' %}
+    {% endif %}
     
     <div style="padding: 20px;">
       <h1 style="color: var(--text); font-size: 32px; font-weight: bold; margin: 20px 0;">My Ride History</h1>
@@ -49,7 +51,7 @@
             <p style="color: var(--muted); font-size: 14px; margin: 0 0 12px 0;">{{ ride.description }}</p>
             {% endif %}
             
-            <p style="color: var(--muted); font-size: 12px; margin: 0 0 12px 0;">📅 {{ ride.date }}</p>
+            <p style="color: var(--muted); font-size: 12px; margin: 0 0 12px 0;">📅 {{ ride.formatted_date }}</p>
             
             <!-- Stats -->
             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--n-300);">

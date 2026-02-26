@@ -1,9 +1,13 @@
 {% extends 'base_mobile.html' %}
 {% block title %}Track Ride{% endblock %}
 {% block content %}
-{% include '_navbar.html' %}
+{% if not request.args.get('app') %}
+  {% include '_navbar.html' %}
+{% endif %}
 <div class="mobile-container">
-  <h2>📍 Track Ride</h2>
-  <p>Track ride content goes here.</p>
+  <div class="mobile-section">
+    <h2 style="font-size:1.2rem; font-weight:700; color:var(--primary-600);">📍 Track Ride</h2>
+    <p style="color:var(--muted);font-size:1.1em;">Track ride content goes here.</p>
+  </div>
 </div>
 {% endblock %}

@@ -36,7 +36,9 @@
 </head>
 <body>
   <div class="dashboard-container">
-    {% include '_navbar.html' %}
+    {% if not request.args.get('app') %}
+      {% include '_navbar.html' %}
+    {% endif %}
     
     <div class="events-header">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
@@ -106,13 +108,7 @@
         {% for event in events %}
           <div class="event-card">
             {% if event['cover_image'] %}
-              <a href="{{ url_for('event_detail', event_id=event['id']) }}" style="text-decoration: none; color: inherit; display:block;">
-                <img src="{{ event['cover_image'] }}" alt="{{ event['title'] }}" class="event-card-image">
-              </a>
-            {% else %}
-              <a href="{{ url_for('event_detail', event_id=event['id']) }}" style="text-decoration: none; color: inherit; display:block;">
-                <div class="event-card-image">{{ event['category_label'][0] }}</div>
-              </a>
+              <!-- Cover image and event-card-image removed to prevent big logo rendering -->
             {% endif %}
             
             <div class="event-card-content">

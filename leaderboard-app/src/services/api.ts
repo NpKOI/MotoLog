@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://api.example.com'; // Replace with your actual API base URL
+const API_BASE_URL = 'http://192.168.1.16:5000'; // Local Flask server for testing
 
 export const fetchLeaderboard = async () => {
     try {

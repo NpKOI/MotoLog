@@ -144,7 +144,9 @@
 </head>
 <body>
   <div class="dashboard-container">
-    {% include '_navbar.html' %}
+    {% if not request.args.get('app') %}
+      {% include '_navbar.html' %}
+    {% endif %}
     
     <div style="padding: var(--space-lg);">
       <div class="bike-header view-bike-header">
@@ -377,5 +379,4 @@
     }
   </script>
 </body>
-</html></content>
-<parameter name="filePath">d:\MotoLogV2\MotoLogv2\templates\view_bike.html
+</html>

@@ -20,6 +20,8 @@
       border: 1px solid var(--n-300);
       color: var(--text);
       box-shadow: var(--shadow-2);
+      max-width: 700px;
+      margin: 20px auto;
     }
     .form-card h2 {
       color: var(--primary-600);
@@ -31,6 +33,12 @@
       background: var(--n-100);
       border: 1px solid var(--n-300);
       color: var(--text);
+      width: 100%;
+      min-width: 220px;
+      font-size: 1.1rem;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 2px;
     }
     .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
       border-color: var(--primary-500);
@@ -49,11 +57,72 @@
     .file-preview {
       color: var(--muted);
     }
+    .visibility-label {
+      font-weight: 600;
+      color: var(--text);
+    }
+    .visibility-note {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    body.dark,
+    body.dark .form-container {
+      background: #181a20 !important;
+    }
+    body.dark .form-card {
+      background: #23242a !important;
+      color: #f7f7f7 !important;
+    }
+    body.dark .form-group input,
+    body.dark .form-group textarea,
+    body.dark .form-group select {
+      background-color: #23242a !important;
+      color: #f7f7f7 !important;
+      border: 1px solid #444 !important;
+    }
+    body.dark .form-group label {
+      color: #bfc7d5 !important;
+    }
+    body.dark .upload-btn {
+      background: #23242a !important;
+      color: #f7f7f7 !important;
+      border: 1px solid #444 !important;
+    }
+    body.dark .upload-btn:hover {
+      background: #2b2d34 !important;
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not(.dark), body:not(.dark) .form-container {
+        background: #181a20 !important;
+      }
+      body:not(.dark) .form-card {
+        background: #23242a !important;
+        color: #f7f7f7 !important;
+      }
+      body:not(.dark) .form-group input,
+      body:not(.dark) .form-group textarea,
+      body:not(.dark) .form-group select {
+        background-color: #23242a !important;
+        color: #f7f7f7 !important;
+        border: 1px solid #444 !important;
+      }
+      body:not(.dark) .form-group label {
+        color: #bfc7d5 !important;
+      }
+      body:not(.dark) .upload-btn {
+        background: #23242a !important;
+        color: #f7f7f7 !important;
+        border: 1px solid #444 !important;
+      }
+      body:not(.dark) .upload-btn:hover {
+        background: #2b2d34 !important;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="form-container">
-    <div class="form-card" style="max-width:700px;">
+    <div class="form-card">
       <h2>🏍️ Edit Bike</h2>
 
       {% with messages = get_flashed_messages(with_categories=true) %}
@@ -105,7 +174,7 @@
         <div class="form-group">
           <label for="bike_photos">Additional Photos</label>
           {% if bike.get('additional_photos') %}
-            {% set additional_photos = bike.additional_photos %}
+            {% set additional_photos = bike['additional_photos'] %}
             {% if additional_photos %}
               <div style="margin-bottom: 1rem; display: flex; gap: 8px; flex-wrap: wrap;">
                 {% for photo_url in additional_photos %}
@@ -130,12 +199,12 @@
 
         <div class="form-group" style="display:flex; align-items:center; justify-content:space-between; gap:1rem;">
           <div class="toggle">
-            <label style="font-weight:600; color:#333;">Visibility</label>
+            <label class="visibility-label">Visibility</label>
             <label class="switch">
               <input type="checkbox" name="is_private" {% if bike['is_private'] %}checked{% endif %}>
               <span class="knob"></span>
             </label>
-            <div style="color:#888; font-size:0.9rem;">Toggle to mark private</div>
+            <div class="visibility-note">Toggle to mark private</div>
           </div>
           <div style="text-align:right;">
             <button type="submit" class="btn">Update Bike</button>
@@ -146,6 +215,13 @@
   </div>
 
   <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const savedTheme = localStorage.getItem('moto_theme');
+      if (savedTheme === 'dark') {
+        document.body.classList.add('dark');
+      }
+    });
+
     function updatePreview(input, targetId) {
       const label = document.getElementById(targetId);
       if (!input.files || !input.files.length) { 
