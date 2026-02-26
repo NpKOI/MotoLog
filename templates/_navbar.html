@@ -48,7 +48,29 @@ document.addEventListener('DOMContentLoaded', function(){
   }
 });
 </script>
-{% if is_mobile and not request.args.get('app') %}
+{% set ua = (request.headers.get('User-Agent', '') or '')|lower %}
+{% set mobile_detected = is_mobile|default(false) or 'iphone' in ua or 'android' in ua or 'mobile' in ua or 'ipad' in ua or 'capacitor' in ua %}
+<style>
+@media (max-width: 900px) and (-webkit-touch-callout: none) {
+  body .mobile-navbar.mobile-navbar--hamburger,
+  body .navbar {
+    top: calc(env(safe-area-inset-top, 0px) + 22px) !important;
+    z-index: 12000 !important;
+    pointer-events: auto !important;
+  }
+
+  body {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 78px) !important;
+  }
+
+  body .mobile-dashboard-container,
+  body .container,
+  body main {
+    margin-top: calc(env(safe-area-inset-top, 0px) + 78px) !important;
+  }
+}
+</style>
+{% if mobile_detected %}
 {% set u = query_db('SELECT profile_pic, username FROM users WHERE id = ?', (session['user_id'],), one=True) if session.get('user_id') else None %}
 <header class="mobile-navbar mobile-navbar--hamburger" role="banner">
   <button id="mobileMenuToggle" class="icon-btn mobile-menu-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="mobileDrawerMenu">
@@ -60,9 +82,21 @@ document.addEventListener('DOMContentLoaded', function(){
     <img src="{{ url_for('static', filename='MotoLog_Logo.png') }}" class="logo-img" alt="MotoLog Logo">
     <span class="brand-text">MotoLog</span>
   </a>
+  <div class="mobile-top-actions">
+    <a href="/messages" class="icon-btn" title="Messages" aria-label="Messages">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M22 2L11 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+    </a>
+    <a href="/profile" class="icon-btn" title="Profile" aria-label="Profile">
+      {% if u and u['profile_pic'] %}
+        <img src="{{ u['profile_pic'] }}" alt="Profile" style="width:24px;height:24px;border-radius:50%;object-fit:cover;">
+      {% else %}
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M4 20c0-2.21 3.58-4 8-4s8 1.79 8 4" stroke="currentColor" stroke-width="1.5"/></svg>
+      {% endif %}
+    </a>
   <button id="themeToggle" class="icon-btn" title="Toggle dark mode" aria-label="Toggle dark mode" type="button">
     <svg id="themeIcon" width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
   </button>
+  </div>
 </header>
 
 <div id="mobileDrawerBackdrop" class="mobile-drawer-backdrop" hidden></div>
@@ -81,6 +115,11 @@ document.addEventListener('DOMContentLoaded', function(){
     </button>
   </div>
 
+  <div class="mobile-drawer-search-wrap">
+    <input id="mobileDrawerSearch" type="search" class="mobile-drawer-search" placeholder="Search riders..." aria-label="Search riders">
+    <div id="mobileDrawerSearchResults" class="mobile-drawer-search-results"></div>
+  </div>
+
   <a href="/dashboard" class="mobile-drawer-link">🏠 Dashboard</a>
   <a href="/leaderboard" class="mobile-drawer-link">🏆 Leaderboard</a>
   <a href="/tools" class="mobile-drawer-link">🛠️ Tools</a>
@@ -90,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function(){
   <a href="/messages" class="mobile-drawer-link">✉️ Messages</a>
   <a href="/notifications" class="mobile-drawer-link">🔔 Notifications</a>
   <a href="/profile" class="mobile-drawer-link">👤 My Profile</a>
-  <a href="/user_garage" class="mobile-drawer-link">🏍️ My Garage</a>
+  <a href="/bikes" class="mobile-drawer-link">🏍️ My Garage</a>
   <a href="/add-bike" class="mobile-drawer-link">➕ Add Bike</a>
   {% if session.get('user_id') %}
     <a href="{{ url_for('logout') }}" class="mobile-drawer-link">🚪 Logout</a>
@@ -103,6 +142,8 @@ document.addEventListener('DOMContentLoaded', function () {
   const closeBtn = document.getElementById('mobileMenuClose');
   const drawer = document.getElementById('mobileDrawerMenu');
   const backdrop = document.getElementById('mobileDrawerBackdrop');
+  const searchInput = document.getElementById('mobileDrawerSearch');
+  const searchResults = document.getElementById('mobileDrawerSearchResults');
 
   if (!toggleBtn || !drawer || !backdrop) return;
 
@@ -131,6 +172,38 @@ document.addEventListener('DOMContentLoaded', function () {
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') setMenuState(false);
   });
+
+  let searchTimer = null;
+  if (searchInput && searchResults) {
+    searchInput.addEventListener('input', function () {
+      const q = searchInput.value.trim();
+      clearTimeout(searchTimer);
+      if (!q) {
+        searchResults.innerHTML = '';
+        return;
+      }
+      searchTimer = setTimeout(function () {
+        fetch('/search/users?q=' + encodeURIComponent(q))
+          .then((r) => r.json())
+          .then((data) => {
+            const users = (data && data.users) ? data.users : [];
+            if (!users.length) {
+              searchResults.innerHTML = '<div class="mobile-search-empty">No users found</div>';
+              return;
+            }
+            searchResults.innerHTML = users.map((user) => {
+              const avatar = user.profile_pic
+                ? `<img src="${user.profile_pic}" alt="${user.username}" class="mobile-search-avatar">`
+                : `<div class="mobile-search-avatar mobile-search-avatar-fallback">${(user.username || 'U').charAt(0).toUpperCase()}</div>`;
+              return `<a class="mobile-search-item" href="/user/${user.id}">${avatar}<span>${user.username}</span></a>`;
+            }).join('');
+          })
+          .catch(() => {
+            searchResults.innerHTML = '<div class="mobile-search-empty">Search unavailable</div>';
+          });
+      }, 220);
+    });
+  }
 
   drawer.querySelectorAll('a').forEach((link) => {
     link.addEventListener('click', function () {

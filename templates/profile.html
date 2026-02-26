@@ -114,6 +114,35 @@
       }
     }
 
+    body.dark .profile-header,
+    body.dark .profile-section,
+    body.dark .user-card,
+    body.dark .ride-card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), var(--card-bg)) !important;
+      color: var(--text) !important;
+    }
+
+    body.dark .user-name,
+    body.dark .ride-title,
+    body.dark .ride-meta,
+    body.dark .stat-label,
+    body.dark .stat-value {
+      color: var(--text) !important;
+    }
+
+    body:not(.dark) .profile-header,
+    body:not(.dark) .profile-section,
+    body:not(.dark) .user-card,
+    body:not(.dark) .ride-card {
+      background: #fff !important;
+      color: #111 !important;
+    }
+
+    body:not(.dark) .user-name,
+    body:not(.dark) .ride-title {
+      color: #111 !important;
+    }
+
     .profile-bio {
       color: #555;
       line-height: 1.6;
@@ -318,6 +347,80 @@
       color: white;
       border: none;
     }
+
+    @media (max-width: 700px) {
+      .profile-header,
+      .profile-section {
+        padding: 1rem;
+        border-radius: 12px;
+      }
+
+      .profile-info {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 1rem;
+      }
+
+      .profile-details {
+        width: 100%;
+      }
+
+      .profile-avatar-large {
+        width: 110px;
+        height: 110px;
+      }
+
+      .profile-username {
+        font-size: 1.35rem;
+      }
+
+      .profile-top-row {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 8px;
+      }
+
+      .profile-top-actions {
+        width: 100%;
+        display: grid !important;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px !important;
+      }
+
+      .profile-top-actions .edit-profile-btn,
+      .profile-top-actions button {
+        width: 100%;
+        text-align: center;
+        justify-content: center;
+      }
+
+      .profile-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .stat {
+        padding: 6px;
+        border-radius: 10px;
+        background: color-mix(in srgb, var(--primary-500) 5%, transparent);
+      }
+
+      .tabs {
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+
+      .tab {
+        flex: 0 0 auto;
+      }
+
+      .ride-head {
+        flex-direction: column;
+        gap: 6px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -348,9 +451,9 @@
         </div>
 
         <div class="profile-details">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+          <div class="profile-top-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
             <div class="profile-username">{{ user['username'] }}</div>
-            <div style="display:flex; gap:0.5rem; align-items:center;">
+            <div class="profile-top-actions" style="display:flex; gap:0.5rem; align-items:center;">
               <a href="/profile/edit" class="edit-profile-btn" style="background: #667eea; color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none;">✏️ Edit Profile</a>
 
               <!-- Delete profile trigger (opens modal) -->
@@ -367,7 +470,7 @@
               <div class="stat-label">Rides</div>
             </div>
             <div class="stat clickable-stat" onclick="switchTab('rides')">
-              <div class="stat-value">{{ "%.0f"|format(total_distance) }}</div>
+              <div class="stat-value">{{ total_distance|human_number }}</div>
               <div class="stat-label">km Total</div>
             </div>
             <div class="stat clickable-stat" onclick="switchTab('followers')">
@@ -452,8 +555,8 @@
                     <div class="ride-meta">📅 {{ ride.formatted_date }}</div>
                   </div>
                   <div style="text-align:right;">
-                    <div class="ride-title">{{ ride['distance'] }} km</div>
-                    <div class="ride-meta">⏱️ {{ "%.2f"|format(ride['time']) }}h</div>
+                    <div class="ride-title">{{ ride['distance']|human_metric('km') }}</div>
+                    <div class="ride-meta">⏱️ {{ ride['time']|human_metric('h') }}</div>
                   </div>
                 </div>
                 {% if ride['description'] %}

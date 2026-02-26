@@ -33,7 +33,7 @@
                 <div>
                   <h3 style="margin-bottom:0.25rem;">{{ bike['name'] }} {% if bike['year'] %}• {{ bike['year'] }}{% endif %}</h3>
                   <div style="color:#666;">{{ bike['make_model'] or '-' }}</div>
-                  <div style="color:#888; margin-top:0.5rem;">Odometer: {{ bike['odo'] or 0 }} km</div>
+                  <div style="color:#888; margin-top:0.5rem;">Odometer: {{ (bike['odo'] or 0)|human_metric('km') }}</div>
                 </div>
               </div>
               <div style="display:flex; gap:0.5rem;">

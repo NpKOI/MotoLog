@@ -102,6 +102,26 @@ def query_db(query, args=(), one=False):
         except Exception as e:
             raise e
 
+def get_system_sender_id(fallback_user_id=None):
+    system_row = query_db('SELECT id FROM users WHERE id = 0', one=True)
+    if system_row:
+        return system_row['id']
+
+    try:
+        query_db('''
+            INSERT OR IGNORE INTO users
+            (id, username, email, password, country, profile_pic, bio, emergency_name, emergency_phone, city)
+            VALUES (?, ?, ?, ?, ?, NULL, NULL, NULL, NULL, NULL)
+        ''', (0, '__system__motolog__', '__system__motolog__@local.invalid', '!system-account!', 'System'))
+    except Exception:
+        pass
+
+    system_row = query_db('SELECT id FROM users WHERE id = 0', one=True)
+    if system_row:
+        return system_row['id']
+
+    return fallback_user_id
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.',1)[1].lower() in ALLOWED_EXT
 
@@ -133,8 +153,34 @@ def categorize_tags(tags_str):
     flat = groups['weather'] + groups['terrain'] + groups['style'] + groups['other']
     return groups, flat
 
+def human_number(value):
+    try:
+        num = float(value)
+    except (TypeError, ValueError):
+        return str(value)
+
+    abs_num = abs(num)
+    if abs_num >= 1_000_000_000:
+        out = f"{num / 1_000_000_000:.1f}".rstrip('0').rstrip('.') + 'B'
+    elif abs_num >= 1_000_000:
+        out = f"{num / 1_000_000:.1f}".rstrip('0').rstrip('.') + 'M'
+    elif abs_num >= 10_000:
+        out = f"{num / 1_000:.1f}".rstrip('0').rstrip('.') + 'K'
+    else:
+        if num.is_integer():
+            out = f"{int(num):,}"
+        else:
+            out = f"{num:,.1f}".rstrip('0').rstrip('.')
+    return out
+
+def human_metric(value, unit=''):
+    formatted = human_number(value)
+    return f"{formatted} {unit}".strip()
+
 # Make query_db available in all templates
 app.jinja_env.globals.update(query_db=query_db)
+app.jinja_env.filters['human_number'] = human_number
+app.jinja_env.filters['human_metric'] = human_metric
 
 def create_notification(user_id, notif_type, actor_id=None, event_id=None, message=None):
     """Create a notification for a user"""
@@ -423,7 +469,7 @@ def register():
             flash('Email already exists. Please log in.', 'error')
 
     if is_mobile():
-        return render_template('register_mobile.html', is_mobile=True)
+        return render_template('register.html', is_mobile=True)
     return render_template('register.html', is_mobile=False)
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -451,7 +497,7 @@ def login():
             return redirect(url_for('dashboard'))
 
     if is_mobile():
-        return render_template('login_mobile.html', is_mobile=True)
+        return render_template('login.html', is_mobile=True)
     return render_template('login.html', is_mobile=False)
 
 @app.route('/dashboard')
@@ -488,7 +534,7 @@ def dashboard():
     avg_distance = total_distance / total_rides if total_rides > 0 else 0
 
     if is_mobile():
-        return render_template('dashboard_mobile.html', rides=rides, total_rides=total_rides,
+        return render_template('dashboard.html', rides=rides, total_rides=total_rides,
                                total_distance=total_distance, avg_distance=avg_distance,
                                total_time=total_time, is_mobile=True)
     return render_template('dashboard.html', rides=rides, total_rides=total_rides,
@@ -575,9 +621,9 @@ def profile():
         rides.append(row)
 
     if is_mobile():
-        return render_template('profile_mobile.html', user=user, total_rides=total_rides, 
-                               total_distance=total_distance, followers=followers, 
-                               following=following, rides=rides)
+        return render_template('profile.html', user=user, total_rides=total_rides,
+                               total_distance=total_distance, followers=followers,
+                               following=following, rides=rides, is_mobile=True)
     return render_template('profile.html', user=user, total_rides=total_rides, 
                            total_distance=total_distance, followers=followers, 
                            following=following, rides=rides)
@@ -649,9 +695,10 @@ def user_profile(user_id):
                                 (session['user_id'], user_id), one=True) is not None
 
     if is_mobile():
-        return render_template('user_profile_mobile.html', user=user, total_rides=total_rides,
-                               total_distance=total_distance, followers=followers, 
-                               following=following, rides=rides, is_following=is_following)
+        return render_template('user_profile.html', user=user, total_rides=total_rides,
+                               total_distance=total_distance, followers=followers,
+                               following=following, rides=rides, is_following=is_following,
+                               is_mobile=True)
     return render_template('user_profile.html', user=user, total_rides=total_rides,
                            total_distance=total_distance, followers=followers, 
                            following=following, rides=rides, is_following=is_following)
@@ -664,9 +711,14 @@ def bikes():
     user_id = session['user_id']
     bikes = query_db('SELECT * FROM bikes WHERE user_id = ?', (user_id,))
     if is_mobile():
-        user = query_db('SELECT * FROM users WHERE id = ?', (user_id,), one=True)
-        return render_template('user_garage_mobile.html', user=user, bikes=bikes, is_mobile=True)
+        return render_template('bikes.html', bikes=bikes, is_mobile=True)
     return render_template('bikes.html', bikes=bikes)
+
+@app.route('/user_garage')
+def user_garage_alias():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    return redirect(url_for('bikes'))
 
 @app.route('/add-bike', methods=['GET','POST'])
 def add_bike():
@@ -715,7 +767,7 @@ def add_bike():
             flash('Bike added.', 'success')
             return redirect(url_for('bikes'))
     if is_mobile():
-        return render_template('add_bike_mobile.html', is_mobile=True, user=user)
+        return render_template('add_bike.html', is_mobile=True, user=user)
     return render_template('add_bike.html')
 
 @app.route('/edit-bike/<int:bike_id>', methods=['GET','POST'])
@@ -816,6 +868,20 @@ def view_bike(bike_id):
                 ride_dict['formatted_date'] = str(ride_dict['date'])
         else:
             ride_dict['formatted_date'] = 'Unknown'
+
+        try:
+            total_seconds = int(float(ride_dict.get('time') or 0))
+        except (TypeError, ValueError):
+            total_seconds = 0
+        hours = total_seconds // 3600
+        minutes = (total_seconds % 3600) // 60
+        seconds = total_seconds % 60
+        if hours > 0:
+            ride_dict['formatted_duration'] = f"{hours}h {minutes}m"
+        elif minutes > 0:
+            ride_dict['formatted_duration'] = f"{minutes}m {seconds}s"
+        else:
+            ride_dict['formatted_duration'] = f"{seconds}s"
         
         # Get GPS points for map preview
         gps_points = query_db(
@@ -857,7 +923,7 @@ def user_garage(user_id):
     bikes = query_db('SELECT * FROM bikes WHERE user_id = ? ORDER BY name', (user_id,))
     
     if is_mobile():
-        return render_template('user_garage_mobile.html', user=user, bikes=bikes, is_mobile=True)
+        return render_template('user_garage.html', user=user, bikes=bikes, is_mobile=True)
     return render_template('user_garage.html', user=user, bikes=bikes)
 
 # -------- Group chat routes --------
@@ -1021,6 +1087,7 @@ def group_edit(group_id):
         return redirect(url_for('messages'))
 
     is_owner = (group['owner_id'] == session['user_id'])
+    system_sender_id = get_system_sender_id(fallback_user_id=session['user_id'])
 
     if request.method == 'POST':
         # NAME: any member may change the name
@@ -1031,7 +1098,7 @@ def group_edit(group_id):
             actor = session.get('username') or f'User {session["user_id"]}'
             content = f"{actor} changed the group name to \"{name}\""
             query_db('INSERT INTO group_messages (group_id, sender_id, content, created_at) VALUES (?, ?, ?, datetime("now"))',
-                     (group_id, 0, content))
+                     (group_id, system_sender_id, content))
 
         # PHOTO: any member may change the picture
         file = request.files.get('group_pic')
@@ -1045,7 +1112,7 @@ def group_edit(group_id):
             actor = session.get('username') or f'User {session["user_id"]}'
             content = f"{actor} changed the group photo."
             query_db('INSERT INTO group_messages (group_id, sender_id, content, created_at) VALUES (?, ?, ?, datetime("now"))',
-                     (group_id, 0, content))
+                     (group_id, system_sender_id, content))
 
         # ANY MEMBER: add members (only mutual friends of the current user)
         add_ids = request.form.getlist('add_members')
@@ -1072,7 +1139,7 @@ def group_edit(group_id):
                 added_name = added_user['username'] if added_user else f'User {uid_int}'
                 content = f"{actor} added {added_name} to the group."
                 query_db('INSERT INTO group_messages (group_id, sender_id, content, created_at) VALUES (?, ?, ?, datetime("now"))',
-                         (group_id, 0, content))
+                         (group_id, system_sender_id, content))
             else:
                 flash(f'Cannot add user {uid_int}: not a mutual friend.', 'error')
 
@@ -1097,7 +1164,7 @@ def group_edit(group_id):
                         actor = session.get('username') or f'User {session["user_id"]}'
                         content = f"{actor} removed {removed_name} from the group."
                         query_db('INSERT INTO group_messages (group_id, sender_id, content, created_at) VALUES (?, ?, ?, datetime("now"))',
-                                 (group_id, 0, content))
+                                 (group_id, system_sender_id, content))
 
         flash('Group updated.', 'success')
         return redirect(url_for('group_edit', group_id=group_id))
@@ -1211,7 +1278,7 @@ def messages():
     all_convs.sort(key=sort_key, reverse=True)
 
     if is_mobile():
-        return render_template('messages_mobile.html', conversations=all_convs)
+        return render_template('messages.html', conversations=all_convs, is_mobile=True)
     return render_template('messages.html', conversations=all_convs)
 
 @app.route('/messages/with/<int:user_id>')
@@ -2080,7 +2147,7 @@ def events_browse():
         events.append(event)
 
     if is_mobile():
-        return render_template('events_mobile.html',
+        return render_template('events_browse.html',
                                events=events,
                                categories=EVENT_CATEGORIES,
                                current_filter=category,
@@ -2200,7 +2267,7 @@ def create_event():
             ))
         except sqlite3.IntegrityError as e:
             # Temporary fallback: if DB still enforces NOT NULL on latitude/longitude,
-            # retry inserting with zeros to avoid crashing. Recommended: run migration migrate_make_coords_nullable.py
+            # retry inserting with zeros to avoid crashing. Recommended: run migration scripts/migrations/migrate_make_coords_nullable.py
             if 'latitude' in str(e) or 'longitude' in str(e):
                 flash('Database requires coordinates — inserting placeholder coords. Please run the migration to allow optional coordinates.', 'warning')
                 lat = 0.0
@@ -2865,7 +2932,7 @@ def ride_history():
         if ride_dict['public']:
             shared_count += 1
     if is_mobile():
-        return render_template('ride_history_mobile.html', rides_list=rides_list, total_distance=total_distance, shared_count=shared_count, is_mobile=True)
+        return render_template('ride_history.html', rides_list=rides_list, total_distance=total_distance, shared_count=shared_count, is_mobile=True)
     return render_template('ride_history.html', rides_list=rides_list, total_distance=total_distance, shared_count=shared_count, is_mobile=False)
 
 @app.route('/ride/<int:ride_id>')
@@ -3018,7 +3085,7 @@ def track_ride():
     user_id = session['user_id']
     bikes = query_db('SELECT id, name, make_model FROM bikes WHERE user_id = ? ORDER BY name, make_model', (user_id,))
     if is_mobile():
-        return render_template('track_ride_mobile.html', bikes=bikes, mapbox_key=os.environ.get('MAPBOX_KEY', ''), is_mobile=True)
+        return render_template('track_ride.html', bikes=bikes, mapbox_key=os.environ.get('MAPBOX_KEY', ''), is_mobile=True)
     return render_template('track_ride.html', bikes=bikes, mapbox_key=os.environ.get('MAPBOX_KEY', ''), is_mobile=False)
 
 @app.route('/api/ride/start', methods=['POST'])

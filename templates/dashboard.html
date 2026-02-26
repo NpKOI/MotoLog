@@ -5,6 +5,71 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>MotoLog — Dashboard</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <style>
+    @media (max-width: 700px) {
+      .dashboard-hero {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 10px !important;
+      }
+
+      .dashboard-hero > div:first-child {
+        width: 100% !important;
+        padding: 14px !important;
+        gap: 10px !important;
+      }
+
+      .dashboard-hero > div:first-child > div:first-child {
+        width: 56px !important;
+        height: 56px !important;
+        flex-shrink: 0 !important;
+      }
+
+      .dashboard-hero > div:last-child {
+        width: 100% !important;
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 8px !important;
+      }
+
+      .dashboard-hero > div:last-child .btn {
+        width: 100% !important;
+        justify-content: center !important;
+        padding: 10px 8px !important;
+        font-size: 0.92rem !important;
+      }
+
+      .dashboard-stats {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 8px !important;
+      }
+
+      .dashboard-stats .stat-card {
+        padding: 12px 10px !important;
+      }
+
+      section[style*="Recent Rides"] {
+        margin-top: 14px !important;
+      }
+
+      .ride-card {
+        flex-direction: column !important;
+        gap: 10px !important;
+      }
+
+      .ride-card > div:last-child {
+        width: 100% !important;
+        margin-left: 0 !important;
+        flex-direction: row !important;
+      }
+
+      .ride-card > div:last-child .btn,
+      .ride-card > div:last-child .btn-secondary {
+        flex: 1 !important;
+        text-align: center !important;
+      }
+    }
+  </style>
 </head>
 <body>
   <div class="dashboard-container">
@@ -46,19 +111,19 @@
     <section class="dashboard-stats" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap:16px; margin-top:18px;">
       <div class="stat-card">
         <div style="font-size:0.9rem; color:var(--muted); font-weight:700;">Total Rides</div>
-        <div style="font-size:1.9rem; font-weight:800; color:var(--primary-600); margin-top:8px;">{{ total_rides }}</div>
+        <div style="font-size:1.9rem; font-weight:800; color:var(--primary-600); margin-top:8px;">{{ total_rides|human_number }}</div>
       </div>
       <div class="stat-card">
         <div style="font-size:0.9rem; color:var(--muted); font-weight:700;">Total Distance</div>
-        <div style="font-size:1.9rem; font-weight:800; color:var(--primary-600); margin-top:8px;">{{ "%.1f"|format(total_distance) }} km</div>
+        <div style="font-size:1.9rem; font-weight:800; color:var(--primary-600); margin-top:8px;">{{ total_distance|human_metric('km') }}</div>
       </div>
       <div class="stat-card">
         <div style="font-size:0.9rem; color:var(--muted); font-weight:700;">Total Time</div>
-        <div style="font-size:1.9rem; font-weight:800; color:var(--primary-600); margin-top:8px;">{{ "%.1f"|format(total_time) }} hrs</div>
+        <div style="font-size:1.9rem; font-weight:800; color:var(--primary-600); margin-top:8px;">{{ total_time|human_metric('hrs') }}</div>
       </div>
       <div class="stat-card">
         <div style="font-size:0.9rem; color:var(--muted); font-weight:700;">Avg Distance</div>
-        <div style="font-size:1.9rem; font-weight:800; color:var(--primary-600); margin-top:8px;">{{ "%.1f"|format(avg_distance) }} km</div>
+        <div style="font-size:1.9rem; font-weight:800; color:var(--primary-600); margin-top:8px;">{{ avg_distance|human_metric('km') }}</div>
       </div>
     </section>
 
@@ -80,8 +145,8 @@
                     <div style="color:var(--muted); margin-top:6px;">{{ ride['description'] or 'No description' }}</div>
                   </div>
                   <div style="text-align:right;">
-                    <div style="font-weight:800; color:var(--text); font-size:1rem;">{{ ride['distance'] }} km</div>
-                    <div style="color:var(--muted); margin-top:6px;">{{ ride['time'] }} hrs</div>
+                    <div style="font-weight:800; color:var(--text); font-size:1rem;">{{ ride['distance']|human_metric('km') }}</div>
+                    <div style="color:var(--muted); margin-top:6px;">{{ ride['time']|human_metric('hrs') }}</div>
                   </div>
                 </div>
 

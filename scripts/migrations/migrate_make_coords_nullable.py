@@ -9,7 +9,7 @@ This migration will:
  - copy all data from `events` into `events_new`
  - replace the old table
 
-Run: python migrate_make_coords_nullable.py
+Run: python scripts/migrations/migrate_make_coords_nullable.py
 """
 
 def migrate():

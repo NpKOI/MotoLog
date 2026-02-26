@@ -138,7 +138,7 @@
                 {% if bike['year'] %}
                   <div class="bike-stat">📅 <strong>{{ bike['year'] }}</strong></div>
                 {% endif %}
-                <div class="bike-stat">🛣️ <strong>{{ bike['odo'] or 0 }} km</strong></div>
+                <div class="bike-stat">🛣️ <strong>{{ (bike['odo'] or 0)|human_metric('km') }}</strong></div>
               </div>
 
               {% if bike['notes'] %}

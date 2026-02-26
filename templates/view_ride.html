@@ -134,6 +134,57 @@
       margin: 8px 12px;
       text-align: center;
     }
+
+    @media (max-width: 700px) {
+      .ride-details {
+        padding: 12px;
+      }
+
+      .ride-header {
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .ride-title {
+        font-size: 1.35rem;
+        line-height: 1.25;
+      }
+
+      .ride-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin: 12px 0;
+      }
+
+      .stat-card {
+        padding: 10px;
+      }
+
+      .stat-value {
+        font-size: 1.05rem;
+      }
+
+      #map {
+        height: 46vh;
+        min-height: 280px;
+        margin: 12px 0;
+      }
+
+      .action-buttons {
+        flex-direction: column;
+      }
+
+      .action-buttons .btn {
+        width: 100%;
+        text-align: center;
+      }
+    }
   </style>
 </head>
 <body>
@@ -167,7 +218,7 @@
         
         <div class="stats-grid">
           <div class="stat-card">
-            <div class="stat-value">{{ ride.distance|round(1) }} km</div>
+            <div class="stat-value">{{ ride.distance|human_metric('km') }}</div>
             <div class="stat-label">Distance</div>
           </div>
           <div class="stat-card">
@@ -183,11 +234,11 @@
             <div class="stat-label">Duration</div>
           </div>
           <div class="stat-card">
-            <div class="stat-value">{{ ride.avg_speed|round(1) }} km/h</div>
+            <div class="stat-value">{{ ride.avg_speed|human_metric('km/h') }}</div>
             <div class="stat-label">Avg Speed</div>
           </div>
           <div class="stat-card">
-            <div class="stat-value">{{ ride.top_speed|round(1) }} km/h</div>
+            <div class="stat-value">{{ ride.top_speed|human_metric('km/h') }}</div>
             <div class="stat-label">Top Speed</div>
           </div>
         </div>

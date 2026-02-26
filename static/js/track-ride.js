@@ -100,6 +100,16 @@ function formatTime(seconds) {
   return `${minutes}:${secs.toString().padStart(2, '0')}`;
 }
 
+function formatMetric(value, unit = '', decimals = 1) {
+  const numericValue = Number(value) || 0;
+  const formattedValue = new Intl.NumberFormat(undefined, {
+    notation: Math.abs(numericValue) >= 1000 ? 'compact' : 'standard',
+    maximumFractionDigits: decimals,
+    minimumFractionDigits: 0
+  }).format(numericValue);
+  return unit ? `${formattedValue} ${unit}` : formattedValue;
+}
+
 // Helper functions to persist state
 function saveState() {
   localStorage.setItem('motoLog_rideState', JSON.stringify({
@@ -463,10 +473,10 @@ function updateStats() {
   const currentSpeed = ridePoints.length > 0 ? ridePoints[ridePoints.length - 1].speed : 0;
   
   // Update UI
-  document.getElementById('distance').textContent = (distance / 1000).toFixed(2) + ' km';
-  document.getElementById('speed').textContent = Math.round(currentSpeed) + ' km/h';
-  document.getElementById('topSpeed').textContent = topSpeed.toFixed(1) + ' km/h';
-  document.getElementById('avgSpeed').textContent = avgSpeed.toFixed(1) + ' km/h';
+  document.getElementById('distance').textContent = formatMetric(distance, 'km', 2);
+  document.getElementById('speed').textContent = formatMetric(currentSpeed, 'km/h', 0);
+  document.getElementById('topSpeed').textContent = formatMetric(topSpeed, 'km/h', 1);
+  document.getElementById('avgSpeed').textContent = formatMetric(avgSpeed, 'km/h', 1);
   document.getElementById('time').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
@@ -507,10 +517,10 @@ function stopRide() {
   }
   
   // Update modal with current stats
-  document.getElementById('modalDistance').textContent = totalDistance.toFixed(2) + ' km';
+  document.getElementById('modalDistance').textContent = formatMetric(totalDistance, 'km', 2);
   document.getElementById('modalTime').textContent = formatTime(Math.floor((Date.now() - rideStartTime) / 1000));
-  document.getElementById('modalAvgSpeed').textContent = (avgSpeed || 0).toFixed(1) + ' km/h';
-  document.getElementById('modalTopSpeed').textContent = (topSpeed || 0).toFixed(1) + ' km/h';
+  document.getElementById('modalAvgSpeed').textContent = formatMetric(avgSpeed || 0, 'km/h', 1);
+  document.getElementById('modalTopSpeed').textContent = formatMetric(topSpeed || 0, 'km/h', 1);
   
   // Clear form fields
   document.getElementById('rideTitle').value = '';

@@ -93,6 +93,84 @@
     .tab-content.active {
       display: block;
     }
+
+    body.dark .profile-header,
+    body.dark .profile-section,
+    body.dark .ride-card-enhanced,
+    body.dark .tab-content [style*="background: var(--card-bg)"] {
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), var(--card-bg)) !important;
+      color: var(--text) !important;
+    }
+
+    body:not(.dark) .profile-header,
+    body:not(.dark) .profile-section,
+    body:not(.dark) .ride-card-enhanced,
+    body:not(.dark) .tab-content [style*="background: var(--card-bg)"] {
+      background: #fff !important;
+      color: #111 !important;
+    }
+
+    @media (max-width: 700px) {
+      .profile-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 12px;
+      }
+
+      .profile-details {
+        width: 100%;
+      }
+
+      .profile-stats {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .profile-stats .stat {
+        padding: 8px 6px;
+        border-radius: 10px;
+        background: color-mix(in srgb, var(--primary-500) 5%, transparent);
+      }
+
+      .action-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+      }
+
+      .action-buttons .action-btn,
+      .action-buttons form {
+        width: 100%;
+      }
+
+      .action-buttons .action-btn,
+      .action-buttons form button {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .tabs {
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+
+      .tab {
+        flex: 0 0 auto;
+        padding: 10px 12px;
+      }
+
+      .ride-header {
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .ride-card-enhanced {
+        padding: 12px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -197,7 +275,7 @@
                     {% endif %}
                   </div>
                   <div style="text-align:right;">
-                    <div class="ride-distance" style="font-size: 16px; font-weight: bold; color: var(--text);">{{ ride['distance'] }} km</div>
+                    <div class="ride-distance" style="font-size: 16px; font-weight: bold; color: var(--text);">{{ ride['distance']|human_metric('km') }}</div>
                     <div class="ride-meta" style="color: var(--muted); font-size: 14px;">
                       ⏱️ 
                       {% set hours = ride['time'] | int %}

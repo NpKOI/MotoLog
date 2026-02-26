@@ -25,7 +25,7 @@
             </div>
             <div>
               <p style="color: var(--muted); font-size: 14px; margin: 0; font-weight: 500;">TOTAL DISTANCE</p>
-              <p style="color: var(--text); font-size: 24px; font-weight: bold; margin: 8px 0 0 0;">{{ total_distance|round(1) }} km</p>
+              <p style="color: var(--text); font-size: 24px; font-weight: bold; margin: 8px 0 0 0;">{{ total_distance|human_metric('km') }}</p>
             </div>
             <div>
               <p style="color: var(--muted); font-size: 14px; margin: 0; font-weight: 500;">SHARED RIDES</p>
@@ -37,7 +37,7 @@
         <!-- Rides Grid -->
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; margin-bottom: 30px;">
           {% for ride in rides_list %}
-          <div data-ride-id="{{ ride.id }}" class="ride-card-enhanced" style="background-color: var(--card-bg); border: 1px solid var(--n-300); border-radius: 8px; padding: 20px; box-shadow: var(--shadow-1);">
+          <div data-ride-id="{{ ride.id }}" class="ride-card-enhanced" style="background-color: var(--card-bg); border: 1px solid var(--n-300); border-radius: 8px; padding: 20px; box-shadow: var(--shadow-1); display: flex; flex-direction: column; height: 100%;">
             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
               <h3 style="color: var(--text); font-size: 18px; font-weight: bold; margin: 0;">{{ ride.title or 'Untitled Ride' }}</h3>
               {% if ride.public == 1 %}
@@ -57,24 +57,24 @@
             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--n-300);">
               <div>
                 <p style="color: var(--muted); font-size: 12px; margin: 0;">Distance</p>
-                <p style="color: var(--text); font-size: 16px; font-weight: bold; margin: 4px 0 0 0;">{{ ride.distance|round(1) }} km</p>
+                <p style="color: var(--text); font-size: 16px; font-weight: bold; margin: 4px 0 0 0;">{{ ride.distance|human_metric('km') }}</p>
               </div>
               <div>
                 <p style="color: var(--muted); font-size: 12px; margin: 0;">Avg Speed</p>
-                <p style="color: var(--text); font-size: 16px; font-weight: bold; margin: 4px 0 0 0;">{{ ride.avg_speed|round(1) }} km/h</p>
+                <p style="color: var(--text); font-size: 16px; font-weight: bold; margin: 4px 0 0 0;">{{ ride.avg_speed|human_metric('km/h') }}</p>
               </div>
               <div>
                 <p style="color: var(--muted); font-size: 12px; margin: 0;">Duration</p>
-                <p style="color: var(--text); font-size: 16px; font-weight: bold; margin: 4px 0 0 0;">{{ ride.time }}</p>
+                <p style="color: var(--text); font-size: 16px; font-weight: bold; margin: 4px 0 0 0;">{{ ride.time|human_metric('h') }}</p>
               </div>
               <div>
                 <p style="color: var(--muted); font-size: 12px; margin: 0;">Top Speed</p>
-                <p style="color: var(--text); font-size: 16px; font-weight: bold; margin: 4px 0 0 0;">{{ ride.top_speed|round(1) }} km/h</p>
+                <p style="color: var(--text); font-size: 16px; font-weight: bold; margin: 4px 0 0 0;">{{ ride.top_speed|human_metric('km/h') }}</p>
               </div>
             </div>
             
             <!-- Action Buttons -->
-            <div style="display: flex; gap: 8px;">
+            <div style="display: flex; gap: 8px; margin-top: auto; padding-top: 4px;">
               <button onclick="location.href='/ride/{{ ride.id }}'" style="flex: 1; background-color: var(--primary-500); color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-size: 14px;">View</button>
               <button onclick="togglePublic({{ ride.id }}, {{ 1 if ride.public == 0 else 0 }})" style="flex: 1; background-color: #10b981; color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-size: 14px;">{% if ride.public == 1 %}Make Private{% else %}Make Public{% endif %}</button>
               <button onclick="deleteRide({{ ride.id }})" style="flex: 1; background-color: #ef4444; color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-size: 14px;">Delete</button>

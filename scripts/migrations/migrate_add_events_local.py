@@ -1,6 +1,6 @@
 # migrate_add_events_local.py
 # Run this in PowerShell to add is_local column to existing events table:
-# python migrate_add_events_local.py
+# python scripts/migrations/migrate_add_events_local.py
 
 import sqlite3
 

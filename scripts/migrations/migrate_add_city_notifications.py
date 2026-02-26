@@ -2,7 +2,7 @@
 """
 Migration: Add city column to users table and create notifications table.
 
-Run: python migrate_add_city_notifications.py
+Run: python scripts/migrations/migrate_add_city_notifications.py
 """
 
 import sqlite3

@@ -5,12 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MotoLog</title>
   <style>
+    :root {
+      --navbar-height: 52px;
+      --navbar-top-offset: calc(env(safe-area-inset-top, 0px) + 10px);
+      --navbar-total-offset: calc(var(--navbar-top-offset) + var(--navbar-height));
+    }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { width: 100vw; height: 100vh; overflow: hidden; background: #23242a; }
     #app { width: 100vw; height: 100vh; display: flex; flex-direction: column; }
     .shell-navbar {
       width: 100vw;
-      height: 52px;
+      height: var(--navbar-height);
       background: #23242a;
       color: #fff;
       display: flex;
@@ -19,7 +24,7 @@
       padding: 0 16px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.15);
       position: fixed;
-      top: 0;
+      top: var(--navbar-top-offset);
       left: 0;
       right: 0;
       z-index: 9999;
@@ -60,10 +65,10 @@
     }
     .iframe-container {
       width: 100vw;
-      height: calc(100vh - 52px);
+      height: calc(100vh - var(--navbar-total-offset));
       background: #23242a;
       position: fixed;
-      top: 52px;
+      top: var(--navbar-total-offset);
       left: 0;
       right: 0;
       bottom: 0;
@@ -84,10 +89,10 @@
     }
     .loading-overlay {
       position: fixed;
-      top: 52px;
+      top: var(--navbar-total-offset);
       left: 0;
       width: 100vw;
-      height: calc(100vh - 52px);
+      height: calc(100vh - var(--navbar-total-offset));
       background: #23242a;
       display: flex;
       align-items: center;
@@ -119,6 +124,14 @@
       const iframe = document.getElementById('flask-app');
       const links = document.querySelectorAll('.shell-navbar .nav-links a');
       const overlay = document.getElementById('loading-overlay');
+      const baseOrigins = [
+        'http://localhost:5000',
+        'http://192.168.1.16:5000',
+        'https://web-production-24d0.up.railway.app'
+      ];
+      let activeBaseIndex = 0;
+      let loadTimeout = null;
+
       function setActive() {
         try {
           const path = new URL(iframe.contentWindow.location.href).pathname;
@@ -131,6 +144,30 @@
           });
         } catch (e) {}
       }
+
+      function getActiveBase() {
+        return baseOrigins[Math.min(activeBaseIndex, baseOrigins.length - 1)];
+      }
+
+      function loadPath(path) {
+        showOverlay();
+        iframe.src = `${getActiveBase()}${path}`;
+      }
+
+      function tryConnect(path) {
+        if (activeBaseIndex >= baseOrigins.length) {
+          showOverlay();
+          return;
+        }
+
+        loadPath(path);
+        if (loadTimeout) clearTimeout(loadTimeout);
+        loadTimeout = setTimeout(() => {
+          activeBaseIndex += 1;
+          tryConnect(path);
+        }, 4500);
+      }
+
       function showOverlay() {
         overlay.classList.remove('hidden');
       }
@@ -138,18 +175,19 @@
         overlay.classList.add('hidden');
       }
       iframe.addEventListener('load', function() {
+        if (loadTimeout) clearTimeout(loadTimeout);
         setActive();
         setTimeout(hideOverlay, 100); // allow a short delay for smoothness
       });
       links.forEach(link => {
         link.addEventListener('click', function(e) {
           e.preventDefault();
-          showOverlay();
-          iframe.src = link.href;
+          const path = link.getAttribute('href');
+          if (path) loadPath(path);
         });
       });
-      // Show overlay on initial load
-      showOverlay();
+
+      tryConnect('/dashboard?app=1');
     });
   </script>
 </head>
@@ -169,7 +207,7 @@
     </div>
   </div>
   <div class="iframe-container">
-    <iframe id="flask-app" src="http://192.168.1.16:5000/dashboard?app=1"></iframe>
+    <iframe id="flask-app" src="about:blank"></iframe>
     <div class="loading-overlay" id="loading-overlay">
       <div class="spinner"></div>
     </div>

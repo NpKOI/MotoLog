@@ -2003,6 +2003,20 @@ html, body {
     margin-left: 8px !important;
   }
 
+  .mobile-top-actions {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 2px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .mobile-top-actions .icon-btn {
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 9px !important;
+    padding: 0 !important;
+  }
+
   .mobile-navbar.mobile-navbar--hamburger .brand-text {
     color: var(--primary-600) !important;
     font-weight: 800 !important;
@@ -2112,6 +2126,67 @@ html, body {
     border-color: color-mix(in srgb, var(--primary-500) 16%, transparent) !important;
   }
 
+  .mobile-drawer-search-wrap {
+    margin-bottom: 8px !important;
+  }
+
+  .mobile-drawer-search {
+    width: 100% !important;
+    padding: 10px 12px !important;
+    border-radius: 10px !important;
+    border: 1px solid color-mix(in srgb, var(--muted) 16%, transparent) !important;
+    background: color-mix(in srgb, var(--card-bg) 96%, var(--glass) 4%) !important;
+    color: var(--text) !important;
+    font-size: 0.95rem !important;
+  }
+
+  .mobile-drawer-search-results {
+    margin-top: 8px !important;
+    max-height: 220px !important;
+    overflow-y: auto !important;
+  }
+
+  .mobile-search-item {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    text-decoration: none !important;
+    color: var(--text) !important;
+    border-radius: 10px !important;
+    padding: 8px 10px !important;
+    font-weight: 700 !important;
+  }
+
+  .mobile-search-item:hover,
+  .mobile-search-item:focus {
+    background: color-mix(in srgb, var(--primary-500) 8%, transparent) !important;
+    color: var(--primary-600) !important;
+  }
+
+  .mobile-search-avatar {
+    width: 30px !important;
+    height: 30px !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
+    flex-shrink: 0 !important;
+  }
+
+  .mobile-search-avatar-fallback {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #fff !important;
+    background: linear-gradient(135deg, var(--primary-500), var(--primary-600)) !important;
+    font-size: 0.84rem !important;
+    font-weight: 800 !important;
+  }
+
+  .mobile-search-empty {
+    padding: 8px 4px !important;
+    color: var(--muted) !important;
+    font-size: 0.92rem !important;
+  }
+
   body.mobile-menu-open {
     overflow: hidden !important;
   }
@@ -2123,5 +2198,230 @@ html, body {
     margin: 0 auto !important;
     padding-left: 12px !important;
     padding-right: 12px !important;
+  }
+
+  .dashboard-container {
+    width: 100% !important;
+    max-width: 560px !important;
+    margin: 0 auto !important;
+    padding: 12px !important;
+    overflow-x: hidden !important;
+  }
+
+  .track-container {
+    grid-template-columns: 1fr !important;
+    height: auto !important;
+    padding: 8px !important;
+    gap: 10px !important;
+  }
+
+  #map {
+    min-height: 52vh !important;
+    height: 52vh !important;
+  }
+
+  .track-panel {
+    padding: 12px !important;
+  }
+
+  .events-controls form {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .events-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .mobile-dashboard-container[style],
+  .mobile-container[style],
+  .container[style] {
+    margin-top: 0 !important;
+  }
+
+  .mobile-hero[style] {
+    margin-top: 10px !important;
+  }
+
+  main, section, article {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+}
+
+/* ===== Global Mobile Polish (all pages) ===== */
+@media (max-width: 700px) {
+  .dashboard-container,
+  .container,
+  .form-card,
+  .profile-section,
+  .ride-details,
+  .messages-wrapper,
+  .event-card,
+  .stat-card,
+  .ride-card,
+  .ride-card-enhanced {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .dashboard-container > * {
+    min-width: 0 !important;
+  }
+
+  .profile-header,
+  .profile-info,
+  .ride-header,
+  .ride-head,
+  .action-buttons,
+  .track-controls,
+  .events-controls,
+  .stats-grid,
+  .profile-stats,
+  .user-grid,
+  .tabs {
+    min-width: 0 !important;
+  }
+
+  .profile-header,
+  .profile-info,
+  .ride-header,
+  .ride-head,
+  .action-buttons {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+
+  .profile-avatar-large {
+    width: 96px !important;
+    height: 96px !important;
+  }
+
+  .profile-username,
+  .ride-title,
+  h1 {
+    font-size: 1.25rem !important;
+    line-height: 1.25 !important;
+    word-break: break-word !important;
+  }
+
+  h2 {
+    font-size: 1.15rem !important;
+    line-height: 1.3 !important;
+  }
+
+  .stats-grid,
+  .profile-stats {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+
+  .events-grid,
+  .user-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .tabs {
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    scrollbar-width: none;
+  }
+
+  .tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tab {
+    flex: 0 0 auto !important;
+    padding: 9px 11px !important;
+  }
+
+  .btn,
+  .btn-secondary,
+  .action-btn,
+  .track-btn,
+  .gpx-input {
+    width: 100% !important;
+    justify-content: center !important;
+    text-align: center !important;
+  }
+
+  .action-buttons form {
+    width: 100% !important;
+  }
+
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+
+  img,
+  video,
+  iframe,
+  canvas,
+  svg {
+    max-width: 100% !important;
+  }
+
+  [style*="grid-template-columns"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  [style*="display:flex"][style*="justify-content:space-between"] {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  #map {
+    width: 100% !important;
+    min-height: 300px !important;
+    height: 48vh !important;
+  }
+
+  .notification-item,
+  .conversation-item,
+  .event-card-content,
+  .ride-details {
+    padding: 12px !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .mobile-navbar,
+  .mobile-navbar.mobile-navbar--hamburger,
+  .navbar {
+    top: calc(env(safe-area-inset-top, 0px) + 14px) !important;
+    z-index: 10001 !important;
+    pointer-events: auto !important;
+  }
+
+  body {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 66px) !important;
+  }
+
+  .mobile-dashboard-container,
+  .container,
+  main {
+    margin-top: calc(env(safe-area-inset-top, 0px) + 66px) !important;
+  }
+}
+
+@supports (-webkit-touch-callout: none) {
+  .mobile-navbar,
+  .mobile-navbar.mobile-navbar--hamburger,
+  .navbar {
+    top: calc(env(safe-area-inset-top, 0px) + 14px) !important;
+    z-index: 10001 !important;
+    pointer-events: auto !important;
+  }
+
+  body {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 66px) !important;
   }
 }
