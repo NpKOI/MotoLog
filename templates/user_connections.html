@@ -13,6 +13,7 @@
     .user-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap:1rem; }
     .user-card{ background:white; border-radius:8px; padding:1rem; text-align:center; box-shadow:0 4px 12px rgba(0,0,0,0.05);}
     .user-avatar{ width:80px; height:80px; border-radius:50%; overflow:hidden; margin:0 auto 0.5rem; border:2px solid #667eea;}
+    .avatar-fallback{ width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-weight:800; color:#fff; background:linear-gradient(135deg,#667eea,#764ba2); }
   </style>
 </head>
 <body>
@@ -37,9 +38,18 @@
               <div class="user-card">
                 <div class="user-avatar">
                   {% if f['profile_pic'] %}
-                    <img src="{{ f['profile_pic'] }}" style="width:100%; height:100%; object-fit:cover;">
+                    {% set pic = f['profile_pic'] %}
+                    {% if pic.startswith('http://') or pic.startswith('https://') or pic.startswith('/') %}
+                      {% set avatar_src = pic %}
+                    {% elif pic.startswith('static/') %}
+                      {% set avatar_src = '/' + pic %}
+                    {% else %}
+                      {% set avatar_src = '/static/uploads/' + pic %}
+                    {% endif %}
+                    <img src="{{ avatar_src }}" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="avatar-fallback" style="display:none;">{{ f['username'][0].upper() }}</div>
                   {% else %}
-                    <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-weight:bold;">{{ f['username'][0].upper() }}</div>
+                    <div class="avatar-fallback">{{ f['username'][0].upper() }}</div>
                   {% endif %}
                 </div>
                 <div style="font-weight:700;">{{ f['username'] }}</div>
@@ -59,9 +69,18 @@
               <div class="user-card">
                 <div class="user-avatar">
                   {% if f['profile_pic'] %}
-                    <img src="{{ f['profile_pic'] }}" style="width:100%; height:100%; object-fit:cover;">
+                    {% set pic = f['profile_pic'] %}
+                    {% if pic.startswith('http://') or pic.startswith('https://') or pic.startswith('/') %}
+                      {% set avatar_src = pic %}
+                    {% elif pic.startswith('static/') %}
+                      {% set avatar_src = '/' + pic %}
+                    {% else %}
+                      {% set avatar_src = '/static/uploads/' + pic %}
+                    {% endif %}
+                    <img src="{{ avatar_src }}" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="avatar-fallback" style="display:none;">{{ f['username'][0].upper() }}</div>
                   {% else %}
-                    <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-weight:bold;">{{ f['username'][0].upper() }}</div>
+                    <div class="avatar-fallback">{{ f['username'][0].upper() }}</div>
                   {% endif %}
                 </div>
                 <div style="font-weight:700;">{{ f['username'] }}</div>

@@ -837,6 +837,26 @@ def edit_bike(bike_id):
         bike_dict['additional_photos'] = []
     return render_template('edit_bike.html', bike=bike_dict)
 
+@app.route('/delete-bike/<int:bike_id>', methods=['GET', 'POST'])
+def delete_bike(bike_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    bike = query_db('SELECT * FROM bikes WHERE id = ? AND user_id = ?', (bike_id, session['user_id']), one=True)
+    if not bike:
+        flash('Bike not found.', 'error')
+        return redirect(url_for('bikes'))
+
+    try:
+        query_db('UPDATE rides SET bike_id = NULL WHERE bike_id = ?', (bike_id,))
+    except Exception:
+        pass
+
+    query_db('DELETE FROM bike_maintenance WHERE bike_id = ?', (bike_id,))
+    query_db('DELETE FROM bikes WHERE id = ? AND user_id = ?', (bike_id, session['user_id']))
+    flash('Bike deleted.', 'success')
+    return redirect(url_for('bikes'))
+
 @app.route('/bike/<int:bike_id>')
 def view_bike(bike_id):
     bike = query_db('SELECT * FROM bikes WHERE id = ?', (bike_id,), one=True)
@@ -1940,6 +1960,22 @@ def add_ride():
     return render_template('add_ride.html', bikes=bikes)
 
 # Delete a ride (owner-only). Template currently links to /delete-ride/<id>
+def _delete_ride_dependencies(ride_id):
+    dependency_deletes = [
+        'DELETE FROM gps_points WHERE ride_id = ?',
+        'DELETE FROM likes WHERE ride_id = ?',
+        'DELETE FROM comments WHERE ride_id = ?',
+        'DELETE FROM notifications WHERE ride_id = ?'
+    ]
+    for sql in dependency_deletes:
+        try:
+            query_db(sql, (ride_id,))
+        except sqlite3.OperationalError as e:
+            lower_msg = str(e).lower()
+            if 'no such table' in lower_msg or 'no such column' in lower_msg:
+                continue
+            raise
+
 @app.route('/delete-ride/<int:ride_id>')
 def delete_ride(ride_id):
     if 'user_id' not in session:
@@ -1953,9 +1989,8 @@ def delete_ride(ride_id):
         return redirect(url_for('dashboard'))
 
     try:
-        # Remove dependent rows first (comments, likes) to avoid FK issues / orphaned rows
-        query_db('DELETE FROM likes WHERE ride_id = ?', (ride_id,))
-        query_db('DELETE FROM comments WHERE ride_id = ?', (ride_id,))
+        # Remove dependent rows first to avoid FK issues / orphaned rows
+        _delete_ride_dependencies(ride_id)
         # Delete the ride itself
         query_db('DELETE FROM rides WHERE id = ? AND user_id = ?', (ride_id, uid))
         flash('Ride deleted.', 'success')
@@ -1982,6 +2017,23 @@ def delete_profile():
     uid = session['user_id']
 
     try:
+        # Delete ride dependencies first (gps_points, comments, likes, etc.) then rides
+        owned_rides = query_db('SELECT id FROM rides WHERE user_id = ?', (uid,))
+        for ride in owned_rides:
+            _delete_ride_dependencies(ride['id'])
+            query_db('DELETE FROM rides WHERE id = ? AND user_id = ?', (ride['id'], uid))
+
+        # Delete user bikes and bike maintenance (and detach any ride references if present)
+        owned_bikes = query_db('SELECT id FROM bikes WHERE user_id = ?', (uid,))
+        for bike in owned_bikes:
+            bike_id = bike['id']
+            query_db('UPDATE rides SET bike_id = NULL WHERE bike_id = ?', (bike_id,))
+            query_db('DELETE FROM bike_maintenance WHERE bike_id = ?', (bike_id,))
+            query_db('DELETE FROM bikes WHERE id = ? AND user_id = ?', (bike_id, uid))
+
+        # Delete user-level maintenance reminders
+        query_db('DELETE FROM maintenance WHERE user_id = ?', (uid,))
+
         # Delete likes and comments by user
         query_db('DELETE FROM likes WHERE user_id = ?', (uid,))
         query_db('DELETE FROM comments WHERE user_id = ?', (uid,))
@@ -2006,11 +2058,6 @@ def delete_profile():
 
         # Remove any remaining group memberships for this user
         query_db('DELETE FROM group_members WHERE user_id = ?', (uid,))
-
-        # Delete rides (and their likes/comments)
-        # comments/likes for rides created by this user already deleted above per user_id,
-        # but remove ride rows themselves:
-        query_db('DELETE FROM rides WHERE user_id = ?', (uid,))
 
         # Finally delete the user row
         query_db('DELETE FROM users WHERE id = ?', (uid,))
@@ -2174,16 +2221,28 @@ def create_event():
         return redirect(url_for('login'))
     
     if request.method == 'POST':
-        title = request.form.get('title', '').strip()
-        description = request.form.get('description', '').strip()
-        event_date = request.form.get('event_date', '').strip()
-        location_name = request.form.get('location_name', '').strip()
-        city = request.form.get('city', '').strip()  # NEW: city field
-        latitude = request.form.get('latitude', '').strip()
-        longitude = request.form.get('longitude', '').strip()
-        category = request.form.get('category', '').strip()
-        max_participants = request.form.get('max_participants', '').strip()
-        is_local = request.form.get('is_local', 'on') == 'on'
+        form_data = {
+            'title': request.form.get('title', '').strip(),
+            'description': request.form.get('description', '').strip(),
+            'event_date': request.form.get('event_date', '').strip(),
+            'location_name': request.form.get('location_name', '').strip(),
+            'city': request.form.get('city', '').strip(),
+            'latitude': request.form.get('latitude', '').strip(),
+            'longitude': request.form.get('longitude', '').strip(),
+            'category': request.form.get('category', '').strip(),
+            'max_participants': request.form.get('max_participants', '').strip(),
+            'is_local': request.form.get('is_local', 'on')
+        }
+        title = form_data['title']
+        description = form_data['description']
+        event_date = form_data['event_date']
+        location_name = form_data['location_name']
+        city = form_data['city']
+        latitude = form_data['latitude']
+        longitude = form_data['longitude']
+        category = form_data['category']
+        max_participants = form_data['max_participants']
+        is_local = form_data['is_local'] == 'on'
         
         # Prepare allowed cities list (server-driven) and Validation
         user_country = session.get('country')
@@ -2241,7 +2300,7 @@ def create_event():
         if errors:
             for error in errors:
                 flash(error, 'error')
-            return redirect(url_for('create_event'))
+            return render_template('events_create.html', categories=EVENT_CATEGORIES, cities=allowed_cities, form_data=form_data)
         
         # Handle cover image upload
         cover_image = None
@@ -2557,7 +2616,7 @@ def create_event():
     
     cities = country_cities.get(user_country, [])
 
-    return render_template('events_create.html', categories=EVENT_CATEGORIES, cities=cities)
+    return render_template('events_create.html', categories=EVENT_CATEGORIES, cities=cities, form_data={})
     
 
 @app.route('/events/<int:event_id>')
@@ -2638,6 +2697,10 @@ def join_event(event_id):
     if not event:
         flash('Event not found.', 'error')
         return redirect(url_for('events_browse'))
+
+    event = dict(event)
+
+    event = dict(event)
     
     # Check if already participant
     already_joined = query_db(
@@ -2744,16 +2807,37 @@ def edit_event(event_id):
     if event['status'] == 'past':
         flash('Cannot edit a past event.', 'error')
         return redirect(url_for('event_detail', event_id=event_id))
+
+    user_country = session.get('country')
+    cities_rows = []
+    if user_country:
+        cities_rows = query_db('SELECT DISTINCT city FROM users WHERE country = ? AND city IS NOT NULL AND city <> ? ORDER BY city ASC', (user_country, ''))
+    if not cities_rows:
+        cities_rows = query_db('SELECT DISTINCT city FROM events WHERE city IS NOT NULL AND city <> ? ORDER BY city ASC', ('',))
+    cities = [r['city'] for r in cities_rows]
+    if event['city'] and event['city'] not in cities:
+        cities.insert(0, event['city'])
     
     if request.method == 'POST':
-        title = request.form.get('title', '').strip()
-        description = request.form.get('description', '').strip()
-        event_date = request.form.get('event_date', '').strip()
-        location_name = request.form.get('location_name', '').strip()
-        city = request.form.get('city', '').strip()  # NEW: city field
-        latitude = request.form.get('latitude', '').strip()
-        longitude = request.form.get('longitude', '').strip()
-        max_participants = request.form.get('max_participants', '').strip()
+        form_data = {
+            'title': request.form.get('title', '').strip(),
+            'description': request.form.get('description', '').strip(),
+            'event_date': request.form.get('event_date', '').strip(),
+            'location_name': request.form.get('location_name', '').strip(),
+            'city': request.form.get('city', (event['city'] or '')).strip(),
+            'latitude': request.form.get('latitude', '').strip(),
+            'longitude': request.form.get('longitude', '').strip(),
+            'max_participants': request.form.get('max_participants', '').strip(),
+        }
+
+        title = form_data['title']
+        description = form_data['description']
+        event_date = form_data['event_date']
+        location_name = form_data['location_name']
+        city = form_data['city']
+        latitude = form_data['latitude']
+        longitude = form_data['longitude']
+        max_participants = form_data['max_participants']
         
         # Validation
         errors = []
@@ -2800,7 +2884,7 @@ def edit_event(event_id):
         if errors:
             for error in errors:
                 flash(error, 'error')
-            return redirect(url_for('edit_event', event_id=event_id))
+            return render_template('events_edit.html', event=event, categories=EVENT_CATEGORIES, cities=cities, form_data=form_data)
         
         # Handle cover image update
         cover_image = event['cover_image']
@@ -2823,7 +2907,7 @@ def edit_event(event_id):
         flash('Event updated successfully!', 'success')
         return redirect(url_for('event_detail', event_id=event_id))
     
-    return render_template('events_edit.html', event=event, categories=EVENT_CATEGORIES)
+    return render_template('events_edit.html', event=event, categories=EVENT_CATEGORIES, cities=cities, form_data={})
 
 @app.route('/events/<int:event_id>/delete', methods=['POST'])
 def delete_event(event_id):
@@ -3062,11 +3146,16 @@ def api_delete_ride():
     if ride['user_id'] != user_id:
         return jsonify({'error': 'You do not own this ride'}), 403
     
-    # Delete GPS points first
-    query_db('DELETE FROM gps_points WHERE ride_id = ?', (ride_id,))
+    try:
+        ride_id = int(ride_id)
+    except (TypeError, ValueError):
+        return jsonify({'error': 'Invalid ride_id'}), 400
+
+    # Delete dependent records first
+    _delete_ride_dependencies(ride_id)
     
     # Delete ride
-    query_db('DELETE FROM rides WHERE id = ?', (ride_id,))
+    query_db('DELETE FROM rides WHERE id = ? AND user_id = ?', (ride_id, user_id))
     
     return jsonify({
         'success': True,

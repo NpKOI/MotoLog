@@ -19,10 +19,22 @@
     .remove-btn { background: #f5576c; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: 700; font-size: 0.8rem; }
     .remove-btn:hover { background: #e63854; }
     .add-members { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; margin-top: 1rem; }
-    .user-checkbox { background: var(--card-bg); padding: 1rem; border-radius: 10px; border: 2px solid var(--n-300); cursor: pointer; display: flex; align-items: center; gap: 0.75rem; transition: all 0.3s ease; }
+    .user-checkbox { background: var(--card-bg); padding: 1rem; border-radius: 10px; border: 2px solid var(--n-300); display: flex; align-items: center; justify-content: flex-start; gap: 0.75rem; transition: all 0.3s ease; width: 100%; min-height: 56px; }
     .user-checkbox:hover { border-color: var(--primary-500); background: var(--n-200); }
-    .user-checkbox input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; }
-    .user-checkbox-label { flex: 1; font-weight: 700; color: var(--text); }
+    .user-checkbox input[type="checkbox"] {
+      width: 20px !important;
+      height: 20px !important;
+      min-width: 20px !important;
+      max-width: 20px !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      cursor: pointer;
+      flex: 0 0 20px;
+      box-sizing: border-box;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .user-checkbox-label { flex: 1; font-weight: 700; color: var(--text); display: block; cursor: pointer; margin: 0; }
     .pic-section { display: flex; gap: 2rem; align-items: flex-start; margin-bottom: 2rem; }
     .pic-preview { width: 150px; height: 150px; border-radius: 12px; overflow: hidden; border: 3px solid var(--primary-500); box-shadow: 0 4px 12px rgba(102,126,234,0.15); }
     .pic-preview img { width: 100%; height: 100%; object-fit: cover; }
@@ -126,12 +138,10 @@
           {% if add_available_friends %}
             <div class="add-members">
               {% for u in add_available_friends %}
-                <label class="user-checkbox">
-                  <input type="checkbox" name="add_members" value="{{ u['id'] }}">
-                  <div style="flex: 1;">
-                    <div class="user-checkbox-label">{{ u['username'] }}</div>
-                  </div>
-                </label>
+                <div class="user-checkbox">
+                  <input id="add_member_{{ u['id'] }}" type="checkbox" name="add_members" value="{{ u['id'] }}">
+                  <label for="add_member_{{ u['id'] }}" class="user-checkbox-label">{{ u['username'] }}</label>
+                </div>
               {% endfor %}
             </div>
           {% else %}

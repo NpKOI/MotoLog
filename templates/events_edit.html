@@ -34,6 +34,41 @@
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
     .coordinates-input { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
     .help-text { font-size: 0.85rem; color: var(--muted); margin-top: 0.3rem; }
+    .time-input-wrap { position: relative; display: flex; gap: 8px; align-items: center; }
+    .time-input-wrap input { flex: 1; }
+    .time-picker-toggle {
+      border: 1px solid color-mix(in srgb, var(--muted) 20%, transparent);
+      background: color-mix(in srgb, var(--primary-500) 10%, transparent);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 0.72rem 0.85rem;
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+    }
+    .time-picker-panel {
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      z-index: 20;
+      min-width: 220px;
+      background: var(--card-bg);
+      border: 1px solid color-mix(in srgb, var(--muted) 20%, transparent);
+      border-radius: 10px;
+      box-shadow: var(--shadow-2);
+      padding: 10px;
+    }
+    .time-picker-panel[hidden] { display: none !important; }
+    .time-picker-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: center; }
+    .time-picker-grid select {
+      width: 100%; padding: 0.55rem; border: 1px solid color-mix(in srgb, var(--muted) 20%, transparent);
+      border-radius: 8px; background: transparent; color: var(--text);
+    }
+    .time-picker-actions { display: flex; justify-content: flex-end; margin-top: 10px; }
+    .time-picker-apply {
+      border: none; border-radius: 8px; padding: 0.5rem 0.8rem; cursor: pointer;
+      background: linear-gradient(135deg, var(--primary-500), var(--primary-600)); color: #fff; font-weight: 600;
+    }
     .current-image { width: 120px; height: 120px; border-radius: 8px; object-fit: cover; margin-bottom: 1rem; }
     .file-input-wrapper { position: relative; overflow: hidden; display: inline-block; width: 100%; }
     .file-input-label { display: flex; align-items: center; justify-content: center; gap: 0.8rem; padding: 2rem; border: 2px dashed var(--primary-500); border-radius: 8px; background: color-mix(in srgb, var(--primary-500) 5%, transparent); cursor: pointer; transition: all 0.2s; font-weight: 500; color: var(--primary-600); }
@@ -77,12 +112,12 @@
           
           <div class="form-group">
             <label for="title">Event Title</label>
-            <input type="text" id="title" name="title" value="{{ event['title'] }}" required>
+            <input type="text" id="title" name="title" value="{{ form_data.get('title', event['title']) }}" required>
           </div>
 
           <div class="form-group">
             <label for="description">Description</label>
-            <textarea id="description" name="description" required>{{ event['description'] }}</textarea>
+            <textarea id="description" name="description" required>{{ form_data.get('description', event['description']) }}</textarea>
           </div>
         </div>
 
@@ -92,7 +127,31 @@
           
           <div class="form-group">
             <label for="event_date">Date & Time</label>
-            <input type="datetime-local" id="event_date" name="event_date" value="{{ event['event_date'] }}" required>
+            <input type="hidden" id="event_date" name="event_date" value="{{ form_data.get('event_date', event['event_date']) }}" required>
+            <div class="form-row">
+              <div>
+                <label for="event_date_date" style="font-weight: 500; font-size: 0.9rem; margin-bottom: 0.3rem;">Date</label>
+                <input type="date" id="event_date_date" required>
+              </div>
+              <div>
+                <label for="event_date_time" style="font-weight: 500; font-size: 0.9rem; margin-bottom: 0.3rem;">Time</label>
+                <div class="time-input-wrap" id="timePickerWrap">
+                  <input type="text" id="event_date_time" required inputmode="numeric" pattern="([01][0-9]|2[0-3]):[0-5][0-9]" placeholder="HH:MM" maxlength="5" title="Use 24-hour format HH:MM">
+                  <button type="button" id="timePickerToggle" class="time-picker-toggle" aria-label="Open time picker">🕒</button>
+                  <div id="timePickerPanel" class="time-picker-panel" hidden>
+                    <div class="time-picker-grid">
+                      <select id="timePickerHour" aria-label="Hour"></select>
+                      <span>:</span>
+                      <select id="timePickerMinute" aria-label="Minute"></select>
+                    </div>
+                    <div class="time-picker-actions">
+                      <button type="button" id="timePickerApply" class="time-picker-apply">Set time</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <p class="help-text">Time uses 24-hour format (HH:MM).</p>
           </div>
         </div>
 
@@ -102,21 +161,32 @@
           
           <div class="form-group">
             <label for="location_name">Location Name</label>
-            <input type="text" id="location_name" name="location_name" value="{{ event['location_name'] }}" required>
+            <input type="text" id="location_name" name="location_name" value="{{ form_data.get('location_name', event['location_name']) }}" required>
           </div>
 
           <div class="form-group">
-            <label>GPS Coordinates</label>
+            <label for="city">City *</label>
+            <select id="city" name="city" required>
+              <option value="">-- Select a city --</option>
+              {% for c in cities %}
+                <option value="{{ c }}" {% if form_data.get('city', event['city']) == c %}selected{% endif %}>{{ c }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>GPS Coordinates (Optional)</label>
             <div class="coordinates-input">
               <div>
                 <label style="font-weight: 500; font-size: 0.9rem; margin-bottom: 0.3rem;">Latitude</label>
-                <input type="number" name="latitude" value="{{ event['latitude'] }}" required step="0.0001">
+                <input type="number" name="latitude" value="{{ form_data.get('latitude', event['latitude'] if event['latitude'] is not none else '') }}" step="any">
               </div>
               <div>
                 <label style="font-weight: 500; font-size: 0.9rem; margin-bottom: 0.3rem;">Longitude</label>
-                <input type="number" name="longitude" value="{{ event['longitude'] }}" required step="0.0001">
+                <input type="number" name="longitude" value="{{ form_data.get('longitude', event['longitude'] if event['longitude'] is not none else '') }}" step="any">
               </div>
             </div>
+            <p class="help-text">Leave empty to keep coordinates optional</p>
           </div>
         </div>
 
@@ -126,7 +196,7 @@
           
           <div class="form-group">
             <label for="max_participants">Max Participants</label>
-            <input type="number" id="max_participants" name="max_participants" value="{% if event['max_participants'] %}{{ event['max_participants'] }}{% endif %}" min="1">
+            <input type="number" id="max_participants" name="max_participants" value="{{ form_data.get('max_participants', event['max_participants'] if event['max_participants'] else '') }}" min="1">
             <p class="help-text">Current: {{ query_db('SELECT COUNT(*) as c FROM event_participants WHERE event_id = ?', (event['id'],), one=True)['c'] }} participants joined</p>
           </div>
 
@@ -154,5 +224,129 @@
     </div>
 
   </div>
+
+  <script>
+    function splitEventDateValue(raw) {
+      if (!raw) return { date: '', time: '' };
+      const normalized = raw.replace(' ', 'T');
+      const parts = normalized.split('T');
+      if (parts.length < 2) return { date: '', time: '' };
+      return { date: parts[0], time: parts[1].slice(0, 5) };
+    }
+
+    function syncEventDateHidden() {
+      const dateVal = document.getElementById('event_date_date').value;
+      const timeVal = document.getElementById('event_date_time').value;
+      document.getElementById('event_date').value = (dateVal && timeVal) ? `${dateVal}T${timeVal}` : '';
+    }
+
+    function normalize24HourTime(raw) {
+      if (!raw) return '';
+      const value = String(raw).trim();
+      const direct = value.match(/^([01]?\d|2[0-3]):([0-5]\d)$/);
+      if (direct) {
+        const hh = String(parseInt(direct[1], 10)).padStart(2, '0');
+        return `${hh}:${direct[2]}`;
+      }
+      const compact = value.match(/^([01]?\d|2[0-3])([0-5]\d)$/);
+      if (compact) {
+        const hh = String(parseInt(compact[1], 10)).padStart(2, '0');
+        return `${hh}:${compact[2]}`;
+      }
+      return '';
+    }
+
+    const eventDateHidden = document.getElementById('event_date');
+    const eventDateDate = document.getElementById('event_date_date');
+    const eventDateTime = document.getElementById('event_date_time');
+    const timePickerWrap = document.getElementById('timePickerWrap');
+    const timePickerToggle = document.getElementById('timePickerToggle');
+    const timePickerPanel = document.getElementById('timePickerPanel');
+    const timePickerHour = document.getElementById('timePickerHour');
+    const timePickerMinute = document.getElementById('timePickerMinute');
+    const timePickerApply = document.getElementById('timePickerApply');
+
+    for (let hour = 0; hour < 24; hour += 1) {
+      const option = document.createElement('option');
+      option.value = String(hour).padStart(2, '0');
+      option.textContent = option.value;
+      timePickerHour.appendChild(option);
+    }
+    for (let minute = 0; minute < 60; minute += 1) {
+      const option = document.createElement('option');
+      option.value = String(minute).padStart(2, '0');
+      option.textContent = option.value;
+      timePickerMinute.appendChild(option);
+    }
+
+    function applyTimeToInput(hh, mm) {
+      eventDateTime.value = `${hh}:${mm}`;
+      eventDateTime.setCustomValidity('');
+      syncEventDateHidden();
+    }
+
+    function openTimePicker() {
+      const normalized = normalize24HourTime(eventDateTime.value) || '00:00';
+      const parts = normalized.split(':');
+      timePickerHour.value = parts[0];
+      timePickerMinute.value = parts[1];
+      timePickerPanel.hidden = false;
+    }
+
+    function closeTimePicker() {
+      timePickerPanel.hidden = true;
+    }
+
+    const prefill = splitEventDateValue(eventDateHidden.value || '');
+    eventDateDate.value = prefill.date;
+    eventDateTime.value = prefill.time;
+    eventDateTime.addEventListener('blur', function () {
+      const normalized = normalize24HourTime(eventDateTime.value);
+      if (normalized) {
+        eventDateTime.value = normalized;
+        eventDateTime.setCustomValidity('');
+        syncEventDateHidden();
+      } else if (eventDateTime.value) {
+        eventDateTime.setCustomValidity('Please enter time as HH:MM in 24-hour format.');
+      } else {
+        eventDateTime.setCustomValidity('');
+      }
+    });
+    eventDateTime.addEventListener('focus', openTimePicker);
+    eventDateTime.addEventListener('input', function () {
+      eventDateTime.setCustomValidity('');
+      const normalized = normalize24HourTime(eventDateTime.value);
+      if (normalized) {
+        eventDateTime.value = normalized;
+        syncEventDateHidden();
+      }
+    });
+    timePickerToggle.addEventListener('click', function () {
+      if (timePickerPanel.hidden) {
+        openTimePicker();
+      } else {
+        closeTimePicker();
+      }
+    });
+    timePickerApply.addEventListener('click', function () {
+      applyTimeToInput(timePickerHour.value, timePickerMinute.value);
+      closeTimePicker();
+      eventDateTime.focus();
+    });
+    document.addEventListener('click', function (event) {
+      if (!timePickerWrap.contains(event.target)) {
+        closeTimePicker();
+      }
+    });
+    eventDateDate.addEventListener('change', syncEventDateHidden);
+    eventDateTime.addEventListener('change', syncEventDateHidden);
+
+    const editEventForm = document.querySelector('form[method="POST"]');
+    if (editEventForm) {
+      editEventForm.addEventListener('submit', function () {
+        syncEventDateHidden();
+      });
+    }
+  </script>
 </body>
 </html>
